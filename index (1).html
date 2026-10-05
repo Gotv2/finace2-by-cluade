@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สมุดเงิน – บันทึกรายรับรายจ่าย</title>
+<meta name="theme-color" content="#0F5C4D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%93%92%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1EC;--surface:#FFFFFF;--surface2:#F5F7F4;--ink:#15262A;--muted:#5B6D72;--line:#D8DFDA;
+  --brand:#0F5C4D;--brand-ink:#FFFFFF;--inc:#0B7A5A;--exp:#C7324F;--warn:#E3B019;--focus:#2563EB;
+  --shadow:0 1px 0 rgba(21,38,42,.04),0 8px 24px -12px rgba(21,38,42,.18);
+  color-scheme:light;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1618;--surface:#142124;--surface2:#1A2B2F;--ink:#E7F0EE;--muted:#93A8AC;--line:#26393D;
+    --brand:#5CCFB0;--brand-ink:#07211A;--inc:#4FD1A5;--exp:#FF7D93;--warn:#F2C94C;--focus:#7FB0FF;
+    --shadow:0 1px 0 rgba(0,0,0,.2),0 8px 24px -12px rgba(0,0,0,.6);color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1618;--surface:#142124;--surface2:#1A2B2F;--ink:#E7F0EE;--muted:#93A8AC;--line:#26393D;
+  --brand:#5CCFB0;--brand-ink:#07211A;--inc:#4FD1A5;--exp:#FF7D93;--warn:#F2C94C;--focus:#7FB0FF;
+  --shadow:0 1px 0 rgba(0,0,0,.2),0 8px 24px -12px rgba(0,0,0,.6);color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font:400 16px/1.55 'IBM Plex Sans Thai','Noto Sans Thai',system-ui,-apple-system,'Segoe UI',sans-serif;
+  font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+body.lock{overflow:hidden}
+h1,h2,h3,p{margin:0}
+h2{font-size:17px;font-weight:600;letter-spacing:-.005em}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+input,select,textarea{font:inherit;color:inherit;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-height:44px}
+textarea{min-height:140px;resize:vertical}
+:is(button,input,select,textarea,a):focus-visible,label:focus-within{outline:2px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.muted{color:var(--muted)}
+.pos{color:var(--inc)}.neg{color:var(--exp)}
+
+/* layout */
+.app{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:-.01em;flex:1}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--brand);display:grid;place-items:center;color:var(--brand-ink)}
+.who{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);min-width:0}
+.who .av{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.who .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px}
+.iconbtn{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--muted)}
+.iconbtn:hover{background:var(--surface2);color:var(--ink)}
+.banner{margin:0 16px 8px;padding:10px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:14px;color:var(--muted)}
+main{padding:4px 16px 120px;min-width:0}
+svg.i{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;
+  background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;font-size:12px;color:var(--muted);min-height:48px}
+.nav button[aria-current="page"]{color:var(--brand);font-weight:600}
+.nav .fab{color:var(--brand-ink);background:var(--brand);border-radius:16px;min-height:52px;justify-content:center;margin:0 6px;font-weight:600}
+.nav .fab span{display:none}
+@media (min-width:900px){
+  .app{grid-template-columns:210px minmax(0,1fr);column-gap:24px;padding:0 24px}
+  .top,.banner{grid-column:1/-1}
+  .top{padding-left:0;padding-right:0}.banner{margin:0 0 8px}
+  main{padding:4px 0 60px}
+  .nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 72px);align-self:start;display:flex;flex-direction:column;gap:2px;
+    background:none;border:0;padding:0;order:0}
+  .nav button{flex-direction:row;gap:12px;font-size:15px;padding:10px 12px;justify-content:flex-start;min-height:44px}
+  .nav button:hover{background:var(--surface)}
+  .nav .fab{order:-1;margin:0 0 12px;min-height:48px;padding:10px 14px}
+  .nav .fab span{display:inline}
+}
+
+/* surfaces */
+.cols{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:start}
+.span{grid-column:1/-1}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.card>h2{margin-bottom:12px}
+.hero{background:var(--brand);color:var(--brand-ink);border-radius:20px;padding:22px 20px;box-shadow:var(--shadow)}
+.hero .lbl{font-size:14px;opacity:.85}
+.hero .amt{font-size:44px;line-height:1.15;font-weight:700;letter-spacing:-.02em;margin:2px 0 14px;word-break:break-all}
+.hero .amt small{font-size:22px;font-weight:500;opacity:.8}
+.hero ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.hero li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid color-mix(in srgb,var(--brand-ink) 22%,transparent);font-size:15px}
+.hero .note{font-size:13px;opacity:.8;margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat{min-width:0}.stat span{display:block;font-size:13px;color:var(--muted)}
+.stat b{display:block;font-size:19px;font-weight:600;word-break:break-all;line-height:1.3}
+.hint{font-size:14px;color:var(--muted);margin-top:8px}
+.fine{font-size:13px;color:var(--muted);margin-top:10px}
+.link{color:var(--brand);font-weight:600;font-size:15px;padding:8px 0;min-height:44px}
+.empty{text-align:center;padding:28px 12px;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.empty .btn{margin-top:14px}
+
+/* budget pace ruler */
+.budget-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:8px;font-size:15px}
+.pace{position:relative;height:16px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.pace i{position:absolute;inset:0 auto 0 0;background:var(--brand);border-radius:7px 0 0 7px}
+.pace.over i{background:var(--exp)}
+.pace::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,transparent 0 calc(100%/var(--days) - 1.5px),var(--surface) calc(100%/var(--days) - 1.5px) calc(100%/var(--days)))}
+.pace .mark{position:absolute;top:0;bottom:0;width:3px;background:var(--warn);z-index:2;border-radius:2px}
+
+/* buttons / forms */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 18px;border-radius:12px;background:var(--brand);color:var(--brand-ink);font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--exp);color:#fff}
+.btn.sm{min-height:38px;padding:6px 12px;font-size:14px;border-radius:10px}
+.fld{display:grid;gap:6px;font-size:14px;color:var(--muted);min-width:0}
+.fld>span{font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pair{display:grid;grid-template-columns:1fr 1.1fr;gap:8px}
+.stack{display:grid;gap:14px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{padding:9px 6px;border-radius:9px;font-size:15px;color:var(--muted);min-height:40px}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:var(--shadow)}
+.seg button.t-expense[aria-pressed="true"]{color:var(--exp)}
+.seg button.t-income[aria-pressed="true"]{color:var(--inc)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface2);font-size:14px;min-height:38px}
+.chip[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:600}
+.amtbox{display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--line);padding:4px 0}
+.amtbox:focus-within{border-color:var(--brand)}
+.amtbox i{font-style:normal;font-size:28px;color:var(--muted)}
+.amtbox input{border:0;background:transparent;font-size:34px;font-weight:600;padding:4px 0;min-height:56px;outline:none}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:6px}
+.actions .grow{margin-right:auto}
+
+/* transactions */
+.txs{display:grid}
+.tx{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;text-align:left;padding:11px 4px;border-top:1px solid var(--line);min-height:60px;width:100%}
+.txs>.tx:first-child{border-top:0}
+.tx:hover{background:var(--surface2)}
+.tx-ic{width:40px;height:40px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);display:grid;place-items:center;font-size:20px}
+.tx-main{min-width:0;display:grid}
+.tx-main b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-main small{display:flex;gap:10px;color:var(--muted);font-size:13px;flex-wrap:wrap}
+.tx-amt{font-weight:600;white-space:nowrap}
+.tx-amt.income{color:var(--inc)}.tx-amt.expense{color:var(--exp)}.tx-amt.transfer{color:var(--muted)}
+.day{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);padding:16px 4px 6px;font-weight:500}
+.filters{display:grid;gap:10px;margin-bottom:14px}
+.sumline{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:4px}
+
+/* month */
+.mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.mnav h1{font-size:20px;font-weight:700}
+.cat{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:8px 0}
+.cat .bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-top:4px}
+.cat .bar i{display:block;height:100%;background:var(--brand)}
+.cat small{color:var(--muted)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:460px}
+th,td{padding:9px 8px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:500;color:var(--muted);border-top:0}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font:500 12px 'IBM Plex Sans Thai',sans-serif}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* savings */
+.big{font-size:36px;font-weight:700;letter-spacing:-.02em;line-height:1.2;word-break:break-all}
+.res-h{font-size:14px;color:var(--muted)}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.nudge{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.nudge p{flex:1 1 260px}
+
+/* settings */
+.wrow{display:grid;grid-template-columns:52px 1fr 110px 44px;gap:8px;align-items:center;margin-bottom:8px}
+.wrow .emo{text-align:center;padding:10px 4px}
+.crow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:4px 4px 4px 12px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);font-size:14px}
+.tag button{width:30px;height:30px;border-radius:50%;color:var(--muted);font-size:18px;line-height:1}
+.tag button:hover{background:var(--line);color:var(--ink)}
+.addcat{display:grid;grid-template-columns:110px 52px 1fr auto;gap:8px}
+
+/* sheet */
+#sheet-root,#confirm-root{position:relative;z-index:50}
+.scrim{position:fixed;inset:0;background:rgba(10,20,22,.5);z-index:50}
+.scrim.top{z-index:70}
+.sheet{position:fixed;z-index:60;left:0;right:0;bottom:0;max-height:92dvh;display:flex;flex-direction:column;background:var(--surface);
+  border-radius:20px 20px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.25);padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet.enter{animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet.enter{animation:none}}
+.sh-h{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 6px}
+.sh-h h2{font-size:18px}
+.sh-b{padding:8px 18px 20px;overflow:auto;display:grid;gap:16px}
+@media (min-width:700px){.sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:540px;max-height:88dvh;border-radius:20px}
+  .sheet.enter{animation:none}}
+.dlg{position:fixed;z-index:80;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,400px);background:var(--surface);border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:grid;gap:16px}
+.drop{display:grid;place-items:center;gap:6px;text-align:center;border:2px dashed var(--line);border-radius:14px;padding:24px 12px;color:var(--muted);cursor:pointer;background:var(--surface2)}
+.drop b{color:var(--ink)}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.thumbs div{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:3/4}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.thumbs button{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff}
+.item{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px;background:var(--surface2)}
+.item.dup{border-color:var(--warn)}
+.item .top2{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.item label.chk{display:flex;gap:10px;align-items:center;font-weight:500;min-height:36px}
+.item input[type=checkbox]{width:22px;height:22px;min-height:0;accent-color:var(--brand)}
+.badge{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--warn);color:#2b2100;font-weight:600}
+.spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--brand);animation:sp 0.9s linear infinite;margin:0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:3s}}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:90;display:grid;gap:8px;width:max-content;max-width:92vw}
+@media (min-width:900px){#toast{bottom:28px}}
+#toast div{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+#toast div.err{background:var(--exp);color:#fff}
+.skel{height:120px;border-radius:14px;background:var(--surface);border:1px solid var(--line);margin-bottom:14px}
+
+.whobtn{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;min-height:44px;font-size:15px}
+.whobtn:hover{background:var(--surface2)}
+.noauth .nav,.noauth .gear,.noauth #who{display:none}
+.login{max-width:440px;margin:24px auto 0;display:grid;gap:14px;text-align:center}
+.login h1{font-size:28px;font-weight:700;letter-spacing:-.01em}
+.logo-big{font-size:48px;line-height:1}
+.login .card{text-align:left}
+.ulist{display:grid;gap:8px}
+.urow{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);text-align:left;min-height:56px;width:100%}
+.urow:hover{border-color:var(--brand)}
+.urow b{flex:1;font-weight:600}
+.uav{font-size:26px;width:40px;text-align:center}
+pre.raw{white-space:pre-wrap;word-break:break-word;font:13px/1.5 ui-monospace,monospace;background:var(--surface);padding:10px;border-radius:8px;max-height:200px;overflow:auto;margin:6px 0 0}
+details summary{cursor:pointer;color:var(--muted);font-size:14px;min-height:32px}
+.syncst{font-size:13px;color:var(--muted);white-space:nowrap}
+.syncst[data-s="offline"],.syncst[data-s="error"]{color:var(--exp)}
+@media (max-width:420px){.who .nm{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M6 4h12v16H6zM9 9h6M9 13h6M9 17h3"/></svg></span>
+      สมุดเงิน
+    </div>
+    <div class="who" id="who"></div>
+    <button class="iconbtn gear" data-action="tab" data-tab="settings" aria-label="ตั้งค่า">
+      <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+    </button>
+  </header>
+  <div id="banner" class="banner" hidden></div>
+  <nav class="nav" id="nav" aria-label="เมนูหลัก">
+    <button data-action="tab" data-tab="home"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>ภาพรวม</button>
+    <button data-action="tab" data-tab="tx"><svg class="i" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>รายการ</button>
+    <button class="fab" data-action="add" aria-label="เพิ่มรายการ"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>เพิ่มรายการ</span></button>
+    <button data-action="tab" data-tab="month"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>รายเดือน</button>
+    <button data-action="tab" data-tab="save"><svg class="i" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>ออมเงิน</button>
+  </nav>
+  <main id="view"></main>
+</div>
+<div id="sheet-root"></div>
+<div id="confirm-root"></div>
+<div id="toast" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ===== ตั้งค่าฐานข้อมูลออนไลน์ (Supabase) =====
+   ใส่ Project URL และ anon (publishable) key จาก Supabase ตรงนี้
+   ถ้าเว้นว่างไว้ เว็บจะทำงานในโหมดในเครื่อง (ผู้ใช้หลายคนในเบราว์เซอร์เดียว) */
+const CLOUD = {url: 'https://qcolsuxdvbdmrdkmptet.supabase.co', anonKey: 'sb_publishable_4qe8xbMSOisyo8t2NMzgCw_yYKVvEV1'};
+const CLOUD_ON = !!(CLOUD.url && CLOUD.anonKey);
+/* ============================================================
+   สมุดเงิน — โครงสร้างโค้ด (แยกเป็นส่วน ๆ เพื่อต่อยอดง่าย)
+   1) Helpers        ตัวช่วยจัดรูปแบบวันที่/เงิน
+   2) State          สถานะแอป
+   3) Store          ชั้นเก็บข้อมูล (cloud รายผู้ใช้ / local สำรอง)
+   4) Domain         คำนวณยอดคงเหลือ สรุปรายเดือน
+   5) Savings math   สูตรการออม
+   6) Views          หน้าจอแต่ละหน้า
+   7) Sheet          หน้าต่างเพิ่ม/แก้ไข + อ่านสลิป
+   8) Actions        ตัวจัดการอีเวนต์
+   ============================================================ */
+
+/* ---------- 1) Helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TH_MON_S = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const pad = n => String(n).padStart(2, '0');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => { const n = parseFloat(String(v ?? '').replace(/,/g, '')); return Number.isFinite(n) ? n : 0; };
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const curKey = () => todayISO().slice(0, 7);
+const isISO = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
+const dim = key => new Date(+key.slice(0,4), +key.slice(5,7), 0).getDate();
+const monthLabel = key => `${TH_MONTHS[+key.slice(5,7)-1]} ${+key.slice(0,4)+543}`;
+const monthShort = key => TH_MON_S[+key.slice(5,7)-1];
+const shiftMonth = (key, d) => { const dt = new Date(+key.slice(0,4), +key.slice(5,7)-1+d, 1); return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}`; };
+const dayLabel = iso => { const [y,m,d] = iso.split('-').map(Number); return `วัน${TH_DAYS[new Date(y,m-1,d).getDay()]}ที่ ${d} ${TH_MONTHS[m-1]} ${y+543}`; };
+const dateFull = dt => `${dt.getDate()} ${TH_MONTHS[dt.getMonth()]} ${dt.getFullYear()+543}`;
+const nf = new Intl.NumberFormat('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+const nf0 = new Intl.NumberFormat('en-US', {maximumFractionDigits:0});
+const baht = (n, d = 2) => { n = num(n); const z = Math.abs(n) < (d ? .005 : .5); return (n < 0 && !z ? '−' : '') + '฿' + (d ? nf : nf0).format(z ? 0 : Math.abs(n)); };
+const genId = () => 't_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const clone = o => JSON.parse(JSON.stringify(o));
+const stable = o => Array.isArray(o) ? '[' + o.map(stable).join(',') + ']'
+  : (o && typeof o === 'object') ? '{' + Object.keys(o).filter(k => o[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + stable(o[k])).join(',') + '}'
+  : JSON.stringify(o);
+function toast(msg, kind) {
+  const box = $('#toast'), el = document.createElement('div');
+  if (kind) el.className = kind; el.textContent = msg; box.appendChild(el);
+  setTimeout(() => el.remove(), kind === 'err' ? 5000 : 2600);
+}
+function ask(msg, ok = 'ยืนยัน') {
+  return new Promise(res => {
+    const r = $('#confirm-root');
+    r.innerHTML = `<div class="scrim top"></div><div class="dlg" role="alertdialog" aria-modal="true"><p>${esc(msg)}</p><div class="actions"><button class="btn ghost" data-c="0">ยกเลิก</button><button class="btn danger" data-c="1">${esc(ok)}</button></div></div>`;
+    r.onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; r.innerHTML = ''; r.onclick = null; res(b.dataset.c === '1'); };
+  });
+}
+
+/* ---------- 2) State ---------- */
+const defaultProfile = () => ({
+  v: 1,
+  wallets: [{id:'w_cash', name:'เงินสด', emoji:'💵', initial:0}, {id:'w_bank', name:'บัญชีธนาคาร', emoji:'🏦', initial:0}],
+  categories: {
+    expense: [
+      {id:'food',name:'อาหาร',emoji:'🍜'},{id:'transport',name:'เดินทาง',emoji:'🚌'},{id:'shopping',name:'ช้อปปิ้ง',emoji:'🛍️'},
+      {id:'bills',name:'บิลและค่าสาธารณูปโภค',emoji:'💡'},{id:'home',name:'ที่พัก',emoji:'🏠'},{id:'health',name:'สุขภาพ',emoji:'💊'},
+      {id:'fun',name:'บันเทิง',emoji:'🎬'},{id:'edu',name:'การศึกษา',emoji:'📚'},{id:'family',name:'ครอบครัว',emoji:'👨‍👩‍👧'},{id:'other',name:'อื่น ๆ',emoji:'🏷️'}
+    ],
+    income: [
+      {id:'salary',name:'เงินเดือน',emoji:'💼'},{id:'bonus',name:'โบนัส',emoji:'🎁'},{id:'side',name:'งานเสริม',emoji:'🧰'},
+      {id:'invest',name:'ดอกเบี้ยและการลงทุน',emoji:'📈'},{id:'other',name:'อื่น ๆ',emoji:'🏷️'}
+    ]
+  },
+  budget: {base: 0, byMonth: {}}
+});
+function normProfile(p) {
+  const d = defaultProfile();
+  if (!p) return d;
+  p = clone(p);
+  return {
+    v: 1,
+    wallets: Array.isArray(p.wallets) && p.wallets.length ? p.wallets.map(w => ({id:String(w.id), name:String(w.name||'บัญชี'), emoji:String(w.emoji||'💳'), initial:num(w.initial)})) : d.wallets,
+    categories: {
+      expense: Array.isArray(p.categories?.expense) && p.categories.expense.length ? p.categories.expense : d.categories.expense,
+      income: Array.isArray(p.categories?.income) && p.categories.income.length ? p.categories.income : d.categories.income
+    },
+    budget: {base: num(p.budget?.base), byMonth: p.budget?.byMonth && typeof p.budget.byMonth === 'object' ? p.budget.byMonth : {}}
+  };
+}
+function freshUi() {
+  return {
+    tab: 'home', month: curKey(), txMonth: 'all', txType: 'all', q: '', txLimit: 80, lastWallet: null,
+    calc: {tab:'grow', initial:'0', rate:'2', grow:{amt:'5000', freq:'month', dur:'10', unit:'year'},
+           goal:{target:'1000000', mode:'time', dur:'3', unit:'year', amt:'10000', freq:'month'}}
+  };
+}
+const S = {ready: false, user: null, login: null, profile: defaultProfile(), months: {}, sheet: null, ui: freshUi()};
+
+/* ---------- 3) Store: ผู้ใช้หลายคน เก็บในเบราว์เซอร์ (localStorage) ----------
+   sn.users        = รายชื่อผู้ใช้ [{id,name,emoji,salt?,pinHash?}]
+   sn.current      = ผู้ใช้ล่าสุด
+   sn.data.<id>    = {profile, months:{ '2026-10':[รายการ...] }} ข้อมูลของผู้ใช้แต่ละคนแยกกัน
+   ถ้าจะย้ายไปใช้ฐานข้อมูลออนไลน์ (Supabase/Firebase) ให้แก้เฉพาะส่วน Store นี้ */
+const LS = {users: 'sn.users', cur: 'sn.current', data: id => 'sn.data.' + id};
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { toast('บันทึกลงเบราว์เซอร์ไม่ได้ (พื้นที่เต็มหรือถูกบล็อก) ลองสำรองข้อมูลไว้', 'err'); return false; } };
+async function hashPin(pin, salt) {
+  const text = salt + ':' + pin;
+  if (window.crypto && crypto.subtle) {
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+  let h = 5381; for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0; return 'x' + h;
+}
+const StoreLocal = {
+  users: [],
+  init() {
+    this.users = lsGet(LS.users, []);
+    const u = this.users.find(x => x.id === lsGet(LS.cur, null));
+    if (u && !u.pinHash) this.enter(u); else if (u) S.login = {step: 'pin', uid: u.id};
+    S.ready = true; render();
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+  },
+  enter(u) {
+    S.user = {id: u.id, name: u.name, emoji: u.emoji};
+    const d = lsGet(LS.data(u.id), null);
+    S.profile = normProfile(d && d.profile); S.months = (d && d.months) || {}; S.ui = freshUi(); S.login = null;
+    lsSet(LS.cur, u.id);
+  },
+  leave() { S.user = null; S.profile = defaultProfile(); S.months = {}; S.sheet = null; S.login = {step: 'list'}; lsSet(LS.cur, null); renderSheet(); },
+  saveUsers() { lsSet(LS.users, this.users); },
+  saveLocal() { if (S.user) lsSet(LS.data(S.user.id), {profile: S.profile, months: S.months}); },
+  saveProfile() { this.saveLocal(); return Promise.resolve(); },
+  saveMonth() { this.saveLocal(); return Promise.resolve(); }
+};
+
+
+/* ---------- 3b) Store ออนไลน์: Supabase (ล็อกอินอีเมล + ซิงค์อัตโนมัติ) ----------
+   ตาราง user_data(user_id, doc_id, data jsonb): doc_id = 'profile' หรือ 'm_YYYY-MM'
+   Row Level Security ทำให้แต่ละบัญชีเห็นเฉพาะแถวของตัวเอง
+   เขียนลงเครื่องก่อนเสมอ (ใช้ออฟไลน์ได้) แล้วอัปโหลดอัตโนมัติ และดึงข้อมูลใหม่ทุก 45 วินาที/เมื่อกลับมาเปิดหน้า */
+const SYNC_L = {syncing: 'กำลังซิงค์…', ok: 'ซิงค์แล้ว', offline: 'ออฟไลน์', error: 'ซิงค์ผิดพลาด'};
+function setSync(st) {
+  S.syncState = st; const el = $('#syncst');
+  if (el) { el.dataset.s = st; el.textContent = SYNC_L[st]; }
+}
+const Api = {
+  sess: null, rp: null,
+  base() { return CLOUD.url.replace(/\/+$/, ''); },
+  load() { this.sess = lsGet('sn.session', null); },
+  save() { if (this.sess) lsSet('sn.session', this.sess); else { try { localStorage.removeItem('sn.session'); } catch (e) {} } },
+  async call(path, o = {}) {
+    const r = await fetch(this.base() + '/auth/v1/' + path, {method: o.method || 'POST',
+      headers: {apikey: CLOUD.anonKey, 'Content-Type': 'application/json', ...(o.bearer ? {Authorization: 'Bearer ' + o.bearer} : {})},
+      body: o.body ? JSON.stringify(o.body) : undefined});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { const e = new Error(j.msg || j.error_description || j.message || j.error || ('auth ' + r.status)); e.status = r.status; throw e; }
+    return j;
+  },
+  setSession(j) {
+    this.sess = {access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (j.expires_in || 3600), user: {id: j.user.id, email: j.user.email}};
+    this.save();
+  },
+  async signIn(email, password) { this.setSession(await this.call('token?grant_type=password', {body: {email, password}})); },
+  async signUp(email, password) { const j = await this.call('signup', {body: {email, password}}); if (j.access_token && j.user) { this.setSession(j); return true; } return false; },
+  refresh() {
+    if (!this.rp) this.rp = this.call('token?grant_type=refresh_token', {body: {refresh_token: this.sess.refresh_token}}).then(j => this.setSession(j)).finally(() => { this.rp = null; });
+    return this.rp;
+  },
+  async token() {
+    if (!this.sess) throw Object.assign(new Error('expired'), {code: 'expired'});
+    if (this.sess.expires_at - 60 < Date.now() / 1000) await this.refresh();
+    return this.sess.access_token;
+  },
+  expire() { this.sess = null; this.save(); return Object.assign(new Error('expired'), {code: 'expired'}); },
+  async rest(method, query, body, extra) {
+    const go = async tok => fetch(this.base() + '/rest/v1/user_data' + query, {method,
+      headers: {apikey: CLOUD.anonKey, Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json', ...(extra || {})}, body: body ? JSON.stringify(body) : undefined});
+    let tok; try { tok = await this.token(); } catch (e) { if (e instanceof TypeError) throw e; throw this.expire(); }
+    let r = await go(tok);
+    if (r.status === 401) { try { await this.refresh(); } catch (e) { if (e instanceof TypeError) throw e; throw this.expire(); } r = await go(this.sess.access_token); }
+    if (!r.ok) { const e = new Error('rest ' + r.status); e.status = r.status; throw e; }
+    return r.status === 204 ? null : r.json().catch(() => null);
+  }
+};
+function authMsg(e) {
+  const m = String((e && e.message) || '').toLowerCase();
+  if (e instanceof TypeError) return 'เชื่อมต่ออินเทอร์เน็ตไม่ได้';
+  if (m.includes('invalid login')) return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+  if (m.includes('not confirmed')) return 'ยังไม่ได้ยืนยันอีเมล เช็กกล่องจดหมายของคุณ';
+  if (m.includes('already registered')) return 'อีเมลนี้สมัครไว้แล้ว ลองเข้าสู่ระบบ';
+  if (m.includes('password') && m.includes('least')) return 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร';
+  if (m.includes('rate limit') || m.includes('too many')) return 'ส่งคำขอถี่เกินไป รอสักครู่แล้วลองใหม่';
+  if (m.includes('valid email') || m.includes('invalid email')) return 'รูปแบบอีเมลไม่ถูกต้อง';
+  return 'ไม่สำเร็จ: ' + (e && e.message || 'ลองอีกครั้ง');
+}
+const StoreCloud = {
+  dirty: new Set(), ver: {}, chain: Promise.resolve(), loaded: true, uid: null, queued: false, kt: null, errShown: false,
+  async init() {
+    Api.load();
+    await this.handleHash();
+    if (Api.sess && !S.user && !(S.login && S.login.step === 'newpw')) this.enter();
+    S.ready = true; render();
+    if (S.user) this.sync();
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) this.sync(); });
+    window.addEventListener('online', () => this.sync());
+    setInterval(() => { if (!document.hidden) this.sync(); }, 45000);
+  },
+  async handleHash() {
+    const h = new URLSearchParams(location.hash.replace(/^#/, '')), at = h.get('access_token');
+    if (!at) return;
+    history.replaceState(null, '', location.pathname + location.search);
+    try {
+      const u = await Api.call('user', {method: 'GET', bearer: at});
+      Api.sess = {access_token: at, refresh_token: h.get('refresh_token') || '', expires_at: Math.floor(Date.now() / 1000) + (+h.get('expires_in') || 3600), user: {id: u.id, email: u.email}};
+      Api.save();
+      if (h.get('type') === 'recovery') S.login = {step: 'newpw'}; else this.enter();
+    } catch (e) { toast('ลิงก์ไม่ถูกต้องหรือหมดอายุ', 'err'); }
+  },
+  enter() {
+    const u = Api.sess.user; this.uid = u.id; this.errShown = false;
+    S.user = {id: u.id, name: (u.email || 'ผู้ใช้').split('@')[0], emoji: '🙂', email: u.email};
+    const d = lsGet(LS.data(u.id), null);
+    this.loaded = !!d;
+    S.profile = normProfile(d && d.profile); S.months = (d && d.months) || {};
+    S.ui = freshUi(); S.login = null; S.syncState = 'syncing';
+    this.dirty = new Set(lsGet('sn.dirty.' + u.id, [])); this.ver = {};
+  },
+  cache() { if (this.uid) { lsSet(LS.data(this.uid), {profile: S.profile, months: S.months}); lsSet('sn.dirty.' + this.uid, [...this.dirty]); } },
+  mark(id) { this.dirty.add(id); this.ver[id] = (this.ver[id] || 0) + 1; this.cache(); clearTimeout(this.kt); this.kt = setTimeout(() => this.kick(), 400); },
+  saveProfile() { this.mark('profile'); return Promise.resolve(); },
+  saveMonth(key) { this.mark('m_' + key); return Promise.resolve(); },
+  run(fn) { const p = this.chain.then(fn); this.chain = p.catch(() => {}); return p; },
+  kick() { return this.run(async () => { if (!S.user) return; try { setSync('syncing'); await this.flush(); setSync('ok'); } catch (e) { this.fail(e); } }); },
+  sync() {
+    if (!S.user || this.queued) return Promise.resolve();
+    this.queued = true;
+    return this.run(async () => {
+      this.queued = false; if (!S.user) return;
+      try {
+        setSync('syncing'); await this.flush();
+        const rows = await Api.rest('GET', '?select=doc_id,data');
+        this.apply(rows || []); this.loaded = true; this.errShown = false; setSync('ok');
+        if (document.body.classList.contains('noauth') && S.user) render();
+      } catch (e) { this.fail(e); }
+    });
+  },
+  async flush() {
+    const uid = this.uid, now = new Date().toISOString();
+    for (const id of [...this.dirty]) {
+      const v = this.ver[id] || 0;
+      if (id === 'profile') await Api.rest('POST', '?on_conflict=user_id,doc_id', [{user_id: uid, doc_id: id, data: clone(S.profile), updated_at: now}], {Prefer: 'resolution=merge-duplicates,return=minimal'});
+      else {
+        const tx = S.months[id.slice(2)] || [];
+        if (tx.length) await Api.rest('POST', '?on_conflict=user_id,doc_id', [{user_id: uid, doc_id: id, data: {v: 1, tx: clone(tx)}, updated_at: now}], {Prefer: 'resolution=merge-duplicates,return=minimal'});
+        else await Api.rest('DELETE', '?doc_id=eq.' + encodeURIComponent(id), null, {Prefer: 'return=minimal'});
+      }
+      if ((this.ver[id] || 0) === v) this.dirty.delete(id);
+    }
+    this.cache();
+  },
+  apply(rows) {
+    const cloud = new Map(rows.map(r => [r.doc_id, r.data])), nm = {...S.months};
+    let np = S.profile;
+    Object.keys(nm).forEach(k => { if (!cloud.has('m_' + k) && !this.dirty.has('m_' + k)) delete nm[k]; });
+    cloud.forEach((data, id) => {
+      if (this.dirty.has(id)) return;
+      if (id === 'profile') np = normProfile(data);
+      else if (id.startsWith('m_')) nm[id.slice(2)] = Array.isArray(data && data.tx) ? data.tx : [];
+    });
+    if (stable([np, nm]) === stable([S.profile, S.months])) return;
+    const a = document.activeElement;
+    if (this.loaded && a && a.closest && a.closest('#view') && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return; // กำลังพิมพ์อยู่ รอบหน้าค่อยอัปเดต
+    S.profile = np; S.months = nm; this.cache(); render();
+  },
+  fail(e) {
+    if (e && e.code === 'expired') { this.reset(); toast('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', 'err'); render(); return; }
+    if (e instanceof TypeError) setSync('offline');
+    else { console.error(e); setSync('error'); if (!this.errShown) { this.errShown = true; toast('ซิงค์ไม่สำเร็จ ตรวจสอบการตั้งค่าฐานข้อมูล (' + (e && e.message || '') + ')', 'err'); } }
+    if (this.loaded === false) render();
+  },
+  reset() {
+    const id = this.uid;
+    try { if (id) { localStorage.removeItem(LS.data(id)); localStorage.removeItem('sn.dirty.' + id); } } catch (e) {}
+    Api.sess = null; Api.save(); this.dirty = new Set(); this.uid = null;
+    S.user = null; S.profile = defaultProfile(); S.months = {}; S.sheet = null; S.login = {step: 'in'}; renderSheet();
+  },
+  leave() { this.reset(); }
+};
+const Store = CLOUD_ON ? StoreCloud : StoreLocal;
+
+/* ---------- 4) Domain ---------- */
+const allTx = () => Object.values(S.months).flat();
+const cmpTx = (a, b) => (b.date.localeCompare(a.date)) || ((b.createdAt || 0) - (a.createdAt || 0));
+const findTx = id => allTx().find(t => t.id === id);
+const walletOf = id => S.profile.wallets.find(w => w.id === id);
+const walletName = id => walletOf(id)?.name || 'ไม่ทราบบัญชี';
+const catsFor = type => S.profile.categories[type === 'income' ? 'income' : 'expense'];
+function catOf(t) {
+  if (t.type === 'transfer') return {emoji:'🔁', name:'โอนย้าย'};
+  return catsFor(t.type).find(c => c.id === t.category) || {emoji:'🏷️', name: t.category || 'อื่น ๆ'};
+}
+function addTxs(list) {
+  const touched = new Set();
+  list.forEach(t => { const k = t.date.slice(0, 7); S.months[k] = [...(S.months[k] || []), t]; touched.add(k); });
+  touched.forEach(k => Store.saveMonth(k));
+}
+function removeTx(id) {
+  for (const k in S.months) {
+    if (S.months[k].some(t => t.id === id)) { S.months[k] = S.months[k].filter(t => t.id !== id); Store.saveMonth(k); return; }
+  }
+}
+function balances() {
+  const b = {}; S.profile.wallets.forEach(w => b[w.id] = num(w.initial));
+  allTx().forEach(t => {
+    const a = num(t.amount);
+    if (t.type === 'income') { if (t.walletId in b) b[t.walletId] += a; }
+    else if (t.type === 'expense') { if (t.walletId in b) b[t.walletId] -= a; }
+    else if (t.type === 'transfer') { if (t.walletId in b) b[t.walletId] -= a; if (t.toWalletId in b) b[t.toWalletId] += a; }
+  });
+  return b;
+}
+function monthStats(key) {
+  const tx = S.months[key] || []; let inc = 0, exp = 0; const cat = {};
+  tx.forEach(t => { const a = num(t.amount); if (t.type === 'income') inc += a; else if (t.type === 'expense') { exp += a; cat[t.category] = (cat[t.category] || 0) + a; } });
+  const b = S.profile.budget.byMonth[key];
+  return {key, inc, exp, net: inc - exp, cat, budget: num(b !== undefined ? b : S.profile.budget.base), count: tx.length, custom: b !== undefined};
+}
+// ยอดเหลือเฉลี่ยต่อเดือน จาก 3 เดือนล่าสุดที่ผ่านมาแล้วและมีข้อมูล
+function avgNet() {
+  const keys = Object.keys(S.months).filter(k => k < curKey() && S.months[k].length).sort().slice(-3);
+  if (!keys.length) return null;
+  return keys.reduce((a, k) => a + monthStats(k).net, 0) / keys.length;
+}
+
+/* ---------- 5) Savings math ---------- */
+const MPD = 365.25 / 12; // วันต่อเดือนเฉลี่ย
+const FREQ_M = {day: MPD, week: MPD / 7, month: 1, year: 1 / 12};   // จำนวนครั้งที่ออมต่อ 1 เดือน
+const UNIT_M = {day: 1 / MPD, month: 1, year: 12};                  // 1 หน่วย = กี่เดือน
+const FREQ_L = {day:'วัน', week:'สัปดาห์', month:'เดือน', year:'ปี'};
+const UNIT_L = {day:'วัน', month:'เดือน', year:'ปี'};
+const fvCalc = (PV, P, r, n) => r ? PV * Math.pow(1 + r, n) + P * (Math.pow(1 + r, n) - 1) / r : PV + P * n;
+function fmtDur(n) {
+  let y = Math.floor(n / 12), m = Math.floor(n - y * 12), d = Math.round((n - y * 12 - m) * MPD);
+  if (d >= 30) { d -= 30; m += 1; } if (m >= 12) { m -= 12; y += 1; }
+  const parts = []; if (y) parts.push(y + ' ปี'); if (m) parts.push(m + ' เดือน'); if (d || !parts.length) parts.push(d + ' วัน');
+  return parts.join(' ');
+}
+
+/* ---------- 6) Views ---------- */
+const emptyState = () => `<div class="empty"><b>ยังไม่มีรายการ</b>เริ่มจากบันทึกรายการแรก หรืออัปโหลดสลิปให้ระบบอ่านให้<br><button class="btn" data-action="add">เพิ่มรายการ</button></div>`;
+function txRow(t) {
+  const c = catOf(t);
+  const sign = t.type === 'income' ? '+' : t.type === 'expense' ? '−' : '';
+  const title = t.note || (t.type === 'transfer' ? `โอนจาก ${walletName(t.walletId)} ไป ${walletName(t.toWalletId)}` : c.name);
+  const src = t.src === 'slip' ? '<small>จากสลิป</small>' : t.src === 'text' ? '<small>จากข้อความ</small>' : '';
+  return `<button class="tx" data-action="edit" data-id="${esc(t.id)}"><span class="tx-ic" aria-hidden="true">${esc(c.emoji)}</span>
+    <span class="tx-main"><b>${esc(title)}</b><small><span>${esc(c.name)}</span><span>${esc(walletName(t.walletId))}</span>${src}</small></span>
+    <span class="tx-amt ${t.type}">${sign}${baht(t.amount)}</span></button>`;
+}
+function paceBlock(st, key) {
+  const days = dim(key), cur = key === curKey();
+  const elapsed = cur ? new Date().getDate() : (key < curKey() ? days : 0);
+  if (!(st.budget > 0)) return `<p class="hint">ยังไม่ได้ตั้งงบเดือนนี้ ตั้งงบเพื่อดูว่าใช้เกินแผนหรือไม่</p>`;
+  const left = st.budget - st.exp, over = left < 0, pct = Math.min(st.exp / st.budget * 100, 100);
+  let pace = '';
+  if (cur) {
+    const planned = st.budget * elapsed / days, diff = st.exp - planned, rem = Math.max(1, days - elapsed + 1);
+    pace = over ? `ใช้เกินงบแล้ว ${baht(-left)}`
+      : diff > 0 ? `ตอนนี้ใช้เร็วกว่าแผน ${baht(diff)} เหลือใช้ได้วันละ ${baht(left / rem)}`
+      : `ยังอยู่ในแผน เหลือเผื่อ ${baht(-diff)} เหลือใช้ได้วันละ ${baht(left / rem)}`;
+    pace += '<br>เส้นเหลืองคือยอดที่ควรใช้ถึงวันนี้';
+  }
+  const mark = cur ? Math.min(elapsed / days * 100, 99) : null;
+  return `<div class="budget-h"><span>งบ ${baht(st.budget, 0)}</span><b class="${over ? 'neg' : 'pos'}">${over ? 'เกินงบ ' + baht(-left) : 'เหลือ ' + baht(left)}</b></div>
+    <div class="pace ${over ? 'over' : ''}" style="--days:${days}" role="img" aria-label="ใช้ไปแล้ว ${Math.round(pct)}% ของงบ"><i style="width:${pct}%"></i>${mark !== null ? `<em class="mark" style="left:${mark}%"></em>` : ''}</div>
+    ${pace ? `<p class="hint">${pace}</p>` : ''}`;
+}
+function statsBlock(st) {
+  const ok = st.net >= 0;
+  return `<div class="stats"><div class="stat"><span>รายรับ</span><b class="pos">${baht(st.inc)}</b></div>
+    <div class="stat"><span>รายจ่าย</span><b class="neg">${baht(st.exp)}</b></div>
+    <div class="stat"><span>${ok ? 'เหลือ' : 'ขาด'}</span><b class="${ok ? 'pos' : 'neg'}">${baht(Math.abs(st.net))}</b></div></div>`;
+}
+function viewHome() {
+  const bal = balances(), P = S.profile;
+  const total = P.wallets.reduce((a, w) => a + (bal[w.id] || 0), 0);
+  const [ip, dp] = nf.format(Math.abs(total)).split('.');
+  const key = curKey(), st = monthStats(key);
+  const recent = allTx().sort(cmpTx).slice(0, 6);
+  const avg = avgNet();
+  const noInit = !allTx().length && P.wallets.every(w => !num(w.initial));
+  let nudge = '';
+  if (avg !== null && avg > 0) {
+    const fv10 = fvCalc(0, avg, 0.02 / 12, 120);
+    nudge = `<section class="card span nudge"><p>3 เดือนที่ผ่านมา คุณเหลือเฉลี่ยเดือนละ <b>${baht(avg, 0)}</b> ถ้าออมจำนวนนี้ต่อเนื่อง 10 ปี (ดอกเบี้ย 2% ต่อปี) จะมีประมาณ <b>${baht(fv10, 0)}</b></p><button class="btn ghost" data-action="use-avg">ลองคำนวณการออม</button></section>`;
+  }
+  return `<div class="cols">
+    <section class="hero" aria-label="ยอดคงเหลือ"><div class="lbl">ยอดคงเหลือรวมทุกบัญชี</div>
+      <div class="amt">${total < 0 ? '−' : ''}฿${ip}<small>.${dp}</small></div>
+      <ul>${P.wallets.map(w => `<li><span>${esc(w.emoji)} ${esc(w.name)}</span><b>${baht(bal[w.id])}</b></li>`).join('')}</ul>
+      ${noInit ? '<p class="note">ยอดคงเหลือ = ยอดตั้งต้นของแต่ละบัญชี + รายรับ − รายจ่าย ตั้งยอดตั้งต้นได้ที่หน้าตั้งค่า</p>' : ''}</section>
+    <section class="card"><h2>เดือนนี้ ${monthLabel(key)}</h2>${statsBlock(st)}${paceBlock(st, key)}</section>
+    ${nudge}
+    <section class="card span"><h2>รายการล่าสุด</h2>${recent.length ? `<div class="txs">${recent.map(txRow).join('')}</div><button class="link" data-action="tab" data-tab="tx">ดูรายการทั้งหมด</button>` : emptyState()}</section>
+  </div>`;
+}
+function filteredTx() {
+  const {txMonth, txType, q} = S.ui; let L = allTx();
+  if (txMonth !== 'all') L = L.filter(t => t.date.startsWith(txMonth));
+  if (txType !== 'all') L = L.filter(t => t.type === txType);
+  const s = q.trim().toLowerCase();
+  if (s) L = L.filter(t => [t.note, catOf(t).name, walletName(t.walletId), t.amount].join(' ').toLowerCase().includes(s));
+  return L.sort(cmpTx);
+}
+function txListHTML() {
+  const L = filteredTx();
+  if (!L.length) return allTx().length ? `<div class="empty"><b>ไม่พบรายการ</b>ลองเปลี่ยนเดือนหรือตัวกรอง</div>` : emptyState();
+  let inc = 0, exp = 0; L.forEach(t => { if (t.type === 'income') inc += num(t.amount); else if (t.type === 'expense') exp += num(t.amount); });
+  const shown = L.slice(0, S.ui.txLimit), groups = [];
+  shown.forEach(t => { const g = groups[groups.length - 1]; if (g && g.date === t.date) g.items.push(t); else groups.push({date: t.date, items: [t]}); });
+  return `<div class="sumline"><span>${L.length} รายการ</span><span class="pos">รับ ${baht(inc)}</span><span class="neg">จ่าย ${baht(exp)}</span></div>` +
+    groups.map(g => { const net = g.items.reduce((a, t) => a + (t.type === 'income' ? num(t.amount) : t.type === 'expense' ? -num(t.amount) : 0), 0);
+      return `<div class="day"><span>${dayLabel(g.date)}</span><span>${net ? (net > 0 ? '+' : '') + baht(net) : ''}</span></div><div class="txs">${g.items.map(txRow).join('')}</div>`; }).join('') +
+    (L.length > shown.length ? `<button class="btn ghost" style="width:100%;margin-top:14px" data-action="tx-more">แสดงเพิ่ม</button>` : '');
+}
+function viewTx() {
+  const keys = [...new Set([...Object.keys(S.months), curKey()])].sort().reverse();
+  const T = [['all','ทั้งหมด'],['expense','รายจ่าย'],['income','รายรับ'],['transfer','โอนย้าย']];
+  return `<div class="filters">
+    <div class="grid2"><select data-change="txmonth" aria-label="เลือกเดือน"><option value="all">ทุกเดือน</option>${keys.map(k => `<option value="${k}" ${S.ui.txMonth === k ? 'selected' : ''}>${monthLabel(k)}</option>`).join('')}</select>
+    <input type="search" placeholder="ค้นหา เช่น กาแฟ" value="${esc(S.ui.q)}" data-input="txq" aria-label="ค้นหารายการ"></div>
+    <div class="chips">${T.map(([v, l]) => `<button class="chip" aria-pressed="${S.ui.txType === v}" data-action="tx-type" data-v="${v}">${l}</button>`).join('')}</div>
+  </div><section class="card" id="txlist">${txListHTML()}</section>`;
+}
+function barChart(keys) {
+  const data = keys.map(monthStats), max = Math.max(1, ...data.flatMap(d => [d.inc, d.exp]));
+  const W = 640, H = 210, pb = 28, pt = 10, gw = W / keys.length, bw = Math.min(24, gw / 3.2), ch = H - pb - pt;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="กราฟเปรียบเทียบรายรับรายจ่ายรายเดือน">
+    <line x1="0" x2="${W}" y1="${H - pb}" y2="${H - pb}" stroke="var(--line)"/>
+    ${data.map((d, i) => { const x = gw * i + gw / 2, hi = ch * d.inc / max, he = ch * d.exp / max;
+      return `<rect x="${x - bw - 2}" y="${H - pb - hi}" width="${bw}" height="${hi}" rx="3" fill="var(--inc)"/><rect x="${x + 2}" y="${H - pb - he}" width="${bw}" height="${he}" rx="3" fill="var(--exp)"/><text x="${x}" y="${H - 8}" text-anchor="middle">${monthShort(keys[i])}</text>`; }).join('')}</svg>
+    <div class="legend"><span><i style="background:var(--inc)"></i>รายรับ</span><span><i style="background:var(--exp)"></i>รายจ่าย</span></div>`;
+}
+function viewMonth() {
+  const key = S.ui.month, st = monthStats(key);
+  const cats = Object.entries(st.cat).sort((a, b) => b[1] - a[1]);
+  const last6 = Array.from({length: 6}, (_, i) => shiftMonth(key, i - 5));
+  const last12 = Array.from({length: 12}, (_, i) => shiftMonth(key, -i));
+  const first = Object.keys(S.months).sort()[0];
+  const cum = {}; if (first) { let run = 0, k = first; const guard = 600; for (let i = 0; i < guard && k <= shiftMonth(key, 0); i++, k = shiftMonth(k, 1)) { run += monthStats(k).net; cum[k] = run; } }
+  const catName = id => catsFor('expense').find(c => c.id === id) || {emoji:'🏷️', name:id || 'อื่น ๆ'};
+  return `<div class="mnav"><button class="iconbtn" data-action="mprev" aria-label="เดือนก่อนหน้า"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <h1>${monthLabel(key)}</h1><button class="iconbtn" data-action="mnext" aria-label="เดือนถัดไป"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
+  <div class="cols">
+    <section class="card"><h2>สรุปเดือน</h2>${statsBlock(st)}
+      <p class="hint">${st.count ? (st.net >= 0 ? `เดือนนี้เหลือเงิน ${baht(st.net)} หลังหักรายจ่าย` : `เดือนนี้ใช้เกินรายรับ ${baht(-st.net)}`) : 'เดือนนี้ยังไม่มีรายการ'}</p></section>
+    <section class="card"><h2>งบประมาณเดือนนี้</h2>${paceBlock(st, key)}
+      <div class="pair" style="margin-top:14px"><input inputmode="decimal" id="mbudget" placeholder="${st.budget ? st.budget : 'ใส่งบ เช่น 15000'}" value="${st.custom ? esc(st.budget) : ''}" aria-label="งบของเดือนนี้">
+      <button class="btn sm" data-action="set-month-budget">ตั้งงบเดือนนี้</button></div>
+      ${st.custom ? `<button class="link" data-action="clear-month-budget">กลับไปใช้งบเริ่มต้น</button>` : ''}</section>
+    <section class="card"><h2>รายจ่ายแยกหมวด</h2>${cats.length ? cats.map(([id, v]) => { const c = catName(id); const p = st.exp ? v / st.exp * 100 : 0;
+      return `<div class="cat"><span aria-hidden="true">${esc(c.emoji)}</span><div>${esc(c.name)} <small>${p.toFixed(0)}%</small><div class="bar"><i style="width:${p}%"></i></div></div><b>${baht(v)}</b></div>`; }).join('') : '<p class="hint">ยังไม่มีรายจ่ายในเดือนนี้</p>'}</section>
+    <section class="card"><h2>6 เดือนล่าสุด</h2>${barChart(last6)}</section>
+    <section class="card span"><h2>ย้อนหลัง 12 เดือน</h2><div class="tbl"><table><thead><tr><th>เดือน</th><th>รายรับ</th><th>รายจ่าย</th><th>เหลือ / ขาด</th><th>เหลือสะสม</th></tr></thead><tbody>
+      ${last12.map(k => { const s = monthStats(k); return `<tr><td>${monthLabel(k)}</td><td>${baht(s.inc)}</td><td>${baht(s.exp)}</td><td class="${s.net >= 0 ? 'pos' : 'neg'}">${s.count ? baht(s.net) : '–'}</td><td>${cum[k] !== undefined ? baht(cum[k]) : '–'}</td></tr>`; }).join('')}
+    </tbody></table></div></section>
+  </div>`;
+}
+
+/* ----- ออมเงิน ----- */
+const fld = (label, path, val, ph = '') => `<label class="fld"><span>${label}</span><input inputmode="decimal" value="${esc(val)}" placeholder="${esc(ph)}" data-input="calc" data-k="${path}"></label>`;
+const sel = (label, path, val, opts) => `<label class="fld"><span>${label}</span><select data-input="calc" data-k="${path}">${opts.map(([v, l]) => `<option value="${v}" ${v === val ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
+const FREQ_OPTS = [['day','ต่อวัน'],['week','ต่อสัปดาห์'],['month','ต่อเดือน'],['year','ต่อปี']];
+const UNIT_OPTS = [['day','วัน'],['month','เดือน'],['year','ปี']];
+function viewSave() {
+  const c = S.ui.calc, avg = avgNet();
+  const form = c.tab === 'grow' ? `
+      <div class="pair">${fld('ออมครั้งละ (บาท)', 'grow.amt', c.grow.amt)}${sel('ความถี่', 'grow.freq', c.grow.freq, FREQ_OPTS)}</div>
+      <div class="pair">${fld('ระยะเวลา', 'grow.dur', c.grow.dur)}${sel('หน่วย', 'grow.unit', c.grow.unit, UNIT_OPTS)}</div>`
+    : `${fld('เงินที่อยากมี (บาท)', 'goal.target', c.goal.target)}
+      <div class="seg" role="group" aria-label="โหมดคำนวณ"><button data-action="calc-mode" data-v="time" aria-pressed="${c.goal.mode === 'time'}">กำหนดระยะเวลา</button><button data-action="calc-mode" data-v="amount" aria-pressed="${c.goal.mode === 'amount'}">กำหนดเงินที่ออมได้</button></div>
+      ${c.goal.mode === 'time' ? `<div class="pair">${fld('ภายใน', 'goal.dur', c.goal.dur)}${sel('หน่วย', 'goal.unit', c.goal.unit, UNIT_OPTS)}</div>`
+        : `<div class="pair">${fld('ออมครั้งละ (บาท)', 'goal.amt', c.goal.amt)}${sel('ความถี่', 'goal.freq', c.goal.freq, FREQ_OPTS)}</div>`}`;
+  return `<div class="seg" role="tablist" style="max-width:560px;margin-bottom:16px">
+    <button role="tab" aria-selected="${c.tab === 'grow'}" data-action="calc-tab" data-v="grow">ออมแล้วจะมีเท่าไร</button>
+    <button role="tab" aria-selected="${c.tab === 'goal'}" data-action="calc-tab" data-v="goal">อยากมีเงินเท่านี้ ต้องออมเท่าไร</button></div>
+  <div class="cols">
+    <section class="card stack"><h2>ข้อมูลการออม</h2>${form}
+      <div class="pair">${fld('เงินตั้งต้น (บาท)', 'initial', c.initial)}${fld('ดอกเบี้ยต่อปี (%)', 'rate', c.rate)}</div>
+      ${avg !== null && avg > 0 ? `<button class="btn ghost sm" data-action="use-avg">ใช้ยอดเหลือเฉลี่ยของฉัน (${baht(avg, 0)} ต่อเดือน)</button>` : ''}
+      <p class="fine">สมมติว่าฝากทุกสิ้นเดือนและดอกเบี้ยทบต้นรายเดือน ไม่รวมภาษีและเงินเฟ้อ เป็นตัวเลขประมาณการเพื่อวางแผน ไม่ใช่คำแนะนำทางการเงิน</p></section>
+    <section class="card" id="calcOut" aria-live="polite">${calcOut()}</section></div>`;
+}
+function stackChart(rows) {
+  const max = Math.max(1, ...rows.map(r => r.total)), W = 640, H = 200, pb = 26, ch = H - pb - 8, gw = W / rows.length, bw = Math.max(4, Math.min(30, gw * .66));
+  const every = Math.ceil(rows.length / 10);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="กราฟเงินต้นและดอกเบี้ยสะสมรายปี"><line x1="0" x2="${W}" y1="${H - pb}" y2="${H - pb}" stroke="var(--line)"/>
+    ${rows.map((r, i) => { const x = gw * i + gw / 2, hp = ch * r.principal / max, hi = ch * r.interest / max;
+      return `<rect x="${x - bw / 2}" y="${H - pb - hp}" width="${bw}" height="${hp}" fill="var(--brand)"/><rect x="${x - bw / 2}" y="${H - pb - hp - hi}" width="${bw}" height="${hi}" rx="2" fill="var(--warn)"/>${i % every === 0 ? `<text x="${x}" y="${H - 8}" text-anchor="middle">${r.label}</text>` : ''}`; }).join('')}</svg>
+    <div class="legend"><span><i style="background:var(--brand)"></i>เงินต้นสะสม</span><span><i style="background:var(--warn)"></i>ดอกเบี้ยสะสม</span></div>`;
+}
+function calcOut() {
+  const c = S.ui.calc, PV = num(c.initial), r = num(c.rate) / 100 / 12;
+  if (c.tab === 'grow') {
+    const P = num(c.grow.amt) * FREQ_M[c.grow.freq], n = num(c.grow.dur) * UNIT_M[c.grow.unit];
+    if (!(n > 0)) return `<p class="hint">กรอกระยะเวลาเพื่อดูผลลัพธ์</p>`;
+    if (n > 1200) return `<p class="hint">ระยะเวลานานเกิน 100 ปี ลองลดระยะเวลาลง</p>`;
+    const F = fvCalc(PV, P, r, n), principal = PV + P * n, interest = F - principal, years = Math.ceil(n / 12);
+    const rows = Array.from({length: years}, (_, i) => { const t = Math.min((i + 1) * 12, n), f = fvCalc(PV, P, r, t), pr = PV + P * t; return {label: i + 1, principal: pr, interest: Math.max(0, f - pr), total: f}; });
+    return `<div class="res-h">เมื่อครบ ${fmtDur(n)} คุณจะมีเงิน</div><div class="big">${baht(F, 0)}</div>
+      <div class="tri"><div class="stat"><span>เงินต้นรวม</span><b>${baht(principal, 0)}</b></div><div class="stat"><span>ดอกเบี้ย</span><b class="pos">${baht(interest, 0)}</b></div><div class="stat"><span>ออมเดือนละ</span><b>${baht(P, 0)}</b></div></div>
+      ${years > 1 ? stackChart(rows) + `<div class="tbl" style="max-height:260px;overflow:auto;margin-top:12px"><table><thead><tr><th>ปีที่</th><th>เงินต้น</th><th>ดอกเบี้ย</th><th>รวม</th></tr></thead><tbody>${rows.map(x => `<tr><td>${x.label}</td><td>${baht(x.principal, 0)}</td><td>${baht(x.interest, 0)}</td><td>${baht(x.total, 0)}</td></tr>`).join('')}</tbody></table></div>` : ''}`;
+  }
+  const FV = num(c.goal.target);
+  if (!(FV > 0)) return `<p class="hint">กรอกเงินที่อยากมีเพื่อดูผลลัพธ์</p>`;
+  if (PV >= FV) return `<div class="big pos">ถึงเป้าแล้ว</div><p class="hint">เงินตั้งต้นของคุณมากกว่าหรือเท่ากับเป้าหมายอยู่แล้ว</p>`;
+  const avg = avgNet();
+  if (c.goal.mode === 'time') {
+    const n = num(c.goal.dur) * UNIT_M[c.goal.unit];
+    if (!(n > 0)) return `<p class="hint">กรอกระยะเวลาเพื่อดูผลลัพธ์</p>`;
+    if (n > 1200) return `<p class="hint">ระยะเวลานานเกิน 100 ปี ลองลดระยะเวลาลง</p>`;
+    const g = Math.pow(1 + r, n), P = r ? (FV - PV * g) * r / (g - 1) : (FV - PV) / n;
+    if (P <= 0) return `<div class="big pos">ไม่ต้องออมเพิ่ม</div><p class="hint">เงินตั้งต้นพร้อมดอกเบี้ยก็ถึงเป้าภายในเวลาที่กำหนด</p>`;
+    const total = P * n, interest = FV - PV - total;
+    return `<div class="res-h">เพื่อให้มี ${baht(FV, 0)} ภายใน ${fmtDur(n)} ต้องออม</div><div class="big">${baht(P / MPD, 0)} <small style="font-size:18px;font-weight:500">ต่อวัน</small></div>
+      <div class="tri"><div class="stat"><span>ต่อสัปดาห์</span><b>${baht(P * 7 / MPD, 0)}</b></div><div class="stat"><span>ต่อเดือน</span><b>${baht(P, 0)}</b></div><div class="stat"><span>ต่อปี</span><b>${baht(P * 12, 0)}</b></div></div>
+      <div class="tri"><div class="stat"><span>เงินต้นที่ออมรวม</span><b>${baht(total, 0)}</b></div><div class="stat"><span>ดอกเบี้ยที่ได้</span><b class="pos">${baht(Math.max(0, interest), 0)}</b></div><div class="stat"><span>เงินตั้งต้น</span><b>${baht(PV, 0)}</b></div></div>
+      ${avg !== null && avg > 0 ? `<p class="hint">เทียบกับยอดเหลือเฉลี่ยของคุณ (${baht(avg, 0)} ต่อเดือน) ต้องออม ${(P / avg * 100).toFixed(0)}% ของยอดเหลือ ${P > avg ? 'ซึ่งมากกว่าที่เหลือจริง ลองยืดระยะเวลา' : 'อยู่ในกรอบที่ทำได้'}</p>` : ''}`;
+  }
+  const P = num(c.goal.amt) * FREQ_M[c.goal.freq];
+  let n = NaN;
+  if (r === 0) n = P > 0 ? (FV - PV) / P : NaN;
+  else { const k = P / r; if (PV + k > 0 && FV + k > 0) n = Math.log((FV + k) / (PV + k)) / Math.log(1 + r); }
+  if (!Number.isFinite(n) || n <= 0) return `<p class="hint">ด้วยจำนวนเงินนี้จะไม่ถึงเป้าหมาย ลองเพิ่มเงินที่ออมหรือดอกเบี้ย</p>`;
+  if (n > 1200) return `<div class="big">นานกว่า 100 ปี</div><p class="hint">ลองเพิ่มเงินที่ออมต่อครั้ง</p>`;
+  const date = new Date(); date.setDate(date.getDate() + Math.round(n * MPD));
+  const total = P * n;
+  return `<div class="res-h">ออม ${baht(num(c.goal.amt), 0)} ${FREQ_OPTS.find(f => f[0] === c.goal.freq)[1]} จะถึง ${baht(FV, 0)} ใน</div><div class="big">${fmtDur(n)}</div>
+    <p class="hint">รวมประมาณ ${nf0.format(Math.round(n * MPD))} วัน คาดว่าถึงเป้าหมายประมาณ ${dateFull(date)}</p>
+    <div class="tri"><div class="stat"><span>เงินต้นที่ออมรวม</span><b>${baht(total, 0)}</b></div><div class="stat"><span>ดอกเบี้ยที่ได้</span><b class="pos">${baht(Math.max(0, FV - PV - total), 0)}</b></div><div class="stat"><span>เงินตั้งต้น</span><b>${baht(PV, 0)}</b></div></div>`;
+}
+
+/* ----- ตั้งค่า ----- */
+function userCard(me) {
+  if (CLOUD_ON) {
+    const n = StoreCloud.dirty.size;
+    return `<section class="card stack"><h2>บัญชีออนไลน์</h2><p style="word-break:break-all">${esc(S.user.email || '')}</p>
+      <p class="hint" style="margin:0">ข้อมูลถูกบันทึกอัตโนมัติและซิงค์กับบัญชีนี้ เปิดจากเครื่องไหนก็เห็นข้อมูลเดียวกัน${n ? ` ตอนนี้มี ${n} ส่วนที่รอซิงค์` : ''}</p>
+      <div class="actions" style="justify-content:flex-start"><button class="btn ghost sm" data-action="sync-now">ซิงค์ตอนนี้</button><button class="btn ghost sm" data-action="logout-cloud">ออกจากระบบ</button></div>
+      <p class="fine">เปลี่ยนรหัสผ่านได้โดยออกจากระบบแล้วกด "ลืมรหัสผ่าน"</p></section>`;
+  }
+  return `<section class="card stack"><h2>ผู้ใช้ ${esc(S.user.emoji)} ${esc(S.user.name)}</h2>
+      <div class="pair"><input id="su-name" value="${esc(S.user.name)}" maxlength="30" aria-label="ชื่อผู้ใช้"><button class="btn sm" data-action="save-name">บันทึกชื่อ</button></div>
+      <div class="pair"><input id="su-pin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN ใหม่ 4-6 หลัก" autocomplete="new-password" aria-label="PIN ใหม่"><button class="btn sm" data-action="set-pin">${me.pinHash ? 'เปลี่ยน PIN' : 'ตั้ง PIN'}</button></div>
+      ${me.pinHash ? '<button class="link" data-action="clear-pin" style="justify-self:start">ลบ PIN</button>' : ''}
+      <div class="actions" style="justify-content:flex-start"><button class="btn ghost sm" data-action="switch-user">สลับผู้ใช้</button><button class="btn danger sm" data-action="delete-user">ลบผู้ใช้นี้</button></div>
+      <p class="fine">PIN ใช้กันคนอื่นที่ใช้เครื่องเดียวกันเปิดดู ไม่ได้เข้ารหัสข้อมูลในเบราว์เซอร์</p></section>`;
+}
+function viewSettings() {
+  const P = S.profile;
+  const tags = type => `<div class="crow">${P.categories[type].map((c, i) => `<span class="tag">${esc(c.emoji)} ${esc(c.name)}<button data-action="cat-del" data-type="${type}" data-i="${i}" aria-label="ลบหมวด ${esc(c.name)}">×</button></span>`).join('')}</div>`;
+  const me = CLOUD_ON ? {} : (Store.users.find(u => u.id === S.user.id) || {});
+  return `<div class="cols">
+    ${userCard(me)}
+    <section class="card"><h2>บัญชีและกระเป๋าเงิน</h2>
+      <div class="wrow" aria-hidden="true"><span class="muted" style="font-size:13px">ไอคอน</span><span class="muted" style="font-size:13px">ชื่อ</span><span class="muted" style="font-size:13px">ยอดตั้งต้น</span><span></span></div>
+      ${P.wallets.map((w, i) => `<div class="wrow"><input class="emo" value="${esc(w.emoji)}" maxlength="4" data-change="wallet" data-i="${i}" data-k="emoji" aria-label="ไอคอน"><input value="${esc(w.name)}" data-change="wallet" data-i="${i}" data-k="name" aria-label="ชื่อบัญชี"><input inputmode="decimal" value="${esc(w.initial)}" data-change="wallet" data-i="${i}" data-k="initial" aria-label="ยอดตั้งต้น"><button class="iconbtn" data-action="wallet-del" data-i="${i}" aria-label="ลบบัญชี ${esc(w.name)}">×</button></div>`).join('')}
+      <button class="btn ghost sm" data-action="wallet-add">เพิ่มบัญชี</button>
+      <p class="fine">ยอดตั้งต้นคือเงินที่มีอยู่ก่อนเริ่มบันทึก ระบบจะบวกรายรับและหักรายจ่ายจากยอดนี้</p></section>
+    <section class="card"><h2>งบประมาณรายเดือน</h2>
+      <label class="fld"><span>งบเริ่มต้นต่อเดือน (บาท)</span><input inputmode="decimal" value="${P.budget.base || ''}" placeholder="เช่น 15000" data-change="budget"></label>
+      <p class="fine">ใช้กับทุกเดือน ปรับเฉพาะเดือนได้ที่หน้ารายเดือน</p></section>
+    <section class="card span"><h2>หมวดหมู่</h2>
+      <p class="muted" style="margin-bottom:8px">รายจ่าย</p>${tags('expense')}<p class="muted" style="margin-bottom:8px">รายรับ</p>${tags('income')}
+      <div class="addcat"><select id="nc-type" aria-label="ประเภทหมวด"><option value="expense">รายจ่าย</option><option value="income">รายรับ</option></select><input id="nc-emo" class="emo" placeholder="🏷️" maxlength="4" aria-label="ไอคอน" style="text-align:center"><input id="nc-name" placeholder="ชื่อหมวดใหม่" aria-label="ชื่อหมวด"><button class="btn sm" data-action="cat-add">เพิ่ม</button></div></section>
+    <section class="card span"><h2>ข้อมูลของคุณ</h2>
+      <p class="hint" style="margin:0 0 12px">${CLOUD_ON ? 'ข้อมูลบันทึกอัตโนมัติและซิงค์กับบัญชีออนไลน์ของคุณ ควรสำรองเป็นไฟล์ JSON ไว้อีกชั้นเป็นครั้งคราว' : 'ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น ไม่ได้ส่งไปที่ใด ถ้าล้างข้อมูลเบราว์เซอร์ข้อมูลจะหาย จึงควรสำรองเป็นไฟล์ JSON เป็นระยะ และใช้ไฟล์นี้ย้ายไปอีกเครื่องได้'}</p>
+      <div class="actions" style="justify-content:flex-start">
+        <button class="btn ghost sm" data-action="export-csv">ส่งออก CSV</button><button class="btn ghost sm" data-action="export-json">สำรองข้อมูล JSON</button>
+        <label class="btn ghost sm" for="impfile" style="cursor:pointer">นำเข้าไฟล์สำรอง</label><input id="impfile" class="sr" type="file" accept="application/json,.json" data-change="import">
+        <button class="btn danger sm" data-action="reset-all">ลบข้อมูลทั้งหมด</button></div></section>
+  </div>`;
+}
+const VIEWS = {home: viewHome, tx: viewTx, month: viewMonth, save: viewSave, settings: viewSettings};
+const EMOJIS = ['🙂','😎','👩','👨','👧','👦','🧑‍💻','🐱','🐶','🦊','🌱','⭐'];
+function viewCloudLogin() {
+  const L = S.login || (S.login = {step: 'in'});
+  const head = '<div class="logo-big" aria-hidden="true">📒</div><h1>สมุดเงิน</h1><p class="muted">บันทึกรายรับรายจ่าย คำนวณยอดคงเหลือและการออม</p>';
+  if (L.step === 'newpw') return `<div class="login">${head}<section class="card stack"><h2>ตั้งรหัสผ่านใหม่</h2><label class="fld"><span>รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)</span><input id="np-pass" type="password" autocomplete="new-password"></label><button class="btn" data-action="cloud-newpw">บันทึกรหัสผ่าน</button></section></div>`;
+  return `<div class="login">${head}<section class="card stack"><h2>เข้าสู่ระบบ</h2>
+    <label class="fld"><span>อีเมล</span><input id="lg-email" type="email" inputmode="email" autocomplete="email"></label>
+    <label class="fld"><span>รหัสผ่าน</span><input id="lg-pass" type="password" autocomplete="current-password"></label>
+    <button class="btn" data-action="cloud-login">เข้าสู่ระบบ</button>
+    <button class="btn ghost" data-action="cloud-signup">สมัครสมาชิกด้วยอีเมลนี้</button>
+    <button class="link" data-action="cloud-reset" style="justify-self:start">ลืมรหัสผ่าน</button>
+    <p class="fine">ข้อมูลของคุณถูกบันทึกอัตโนมัติและซิงค์ทุกอุปกรณ์ที่ล็อกอินบัญชีเดียวกัน คนอื่นเห็นข้อมูลของคุณไม่ได้</p></section></div>`;
+}
+function viewLoading() {
+  const bad = S.syncState === 'offline' || S.syncState === 'error';
+  return `<div class="login"><div class="logo-big" aria-hidden="true">📒</div>${bad ? `<h2>โหลดข้อมูลไม่สำเร็จ</h2><p class="muted">${S.syncState === 'offline' ? 'ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อโหลดข้อมูลครั้งแรกบนเครื่องนี้' : 'ตรวจสอบการตั้งค่าฐานข้อมูลแล้วลองใหม่'}</p><div class="actions" style="justify-content:center"><button class="btn" data-action="sync-now">ลองใหม่</button><button class="btn ghost" data-action="logout-cloud">ออกจากระบบ</button></div>` : '<div class="spin" role="status" aria-label="กำลังโหลด"></div><p class="muted">กำลังโหลดข้อมูลของคุณ</p>'}</div>`;
+}
+function viewLogin() {
+  if (CLOUD_ON) return viewCloudLogin();
+  const users = Store.users, L = S.login || (S.login = {step: 'list'});
+  const card = inner => `<div class="login"><div class="logo-big" aria-hidden="true">📒</div><h1>สมุดเงิน</h1><p class="muted">บันทึกรายรับรายจ่าย คำนวณยอดคงเหลือและการออม</p>${inner}</div>`;
+  if (!users.length || L.step === 'new') return card(`<section class="card stack"><h2>${users.length ? 'เพิ่มผู้ใช้ใหม่' : 'สร้างผู้ใช้คนแรก'}</h2>
+    <label class="fld"><span>ชื่อ</span><input id="nu-name" maxlength="30" placeholder="เช่น แอน" autocomplete="off"></label>
+    <div class="fld"><span>ไอคอน</span><div class="chips">${EMOJIS.map(e => `<button class="chip" data-action="nu-emo" data-v="${e}" aria-pressed="${(L.emoji || EMOJIS[0]) === e}">${e}</button>`).join('')}</div></div>
+    <label class="fld"><span>รหัส PIN 4-6 หลัก (ไม่บังคับ)</span><input id="nu-pin" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password"></label>
+    <div class="actions">${users.length ? '<button class="btn ghost" data-action="login-back">กลับ</button>' : ''}<button class="btn" data-action="login-create">สร้างและเข้าใช้งาน</button></div>
+    <p class="fine">ข้อมูลของแต่ละผู้ใช้แยกกัน และเก็บในเบราว์เซอร์เครื่องนี้</p></section>`);
+  if (L.step === 'pin') { const u = users.find(x => x.id === L.uid); if (u) return card(`<section class="card stack"><h2>${esc(u.emoji)} ${esc(u.name)}</h2>
+    <label class="fld"><span>ใส่รหัส PIN</span><input id="pin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password"></label>
+    <div class="actions"><button class="btn ghost" data-action="login-back">กลับ</button><button class="btn" data-action="login-pin">เข้าใช้งาน</button></div></section>`); }
+  return card(`<section class="card stack"><h2>เลือกผู้ใช้</h2><div class="ulist">${users.map(u => `<button class="urow" data-action="login-pick" data-id="${esc(u.id)}"><span class="uav" aria-hidden="true">${esc(u.emoji)}</span><b>${esc(u.name)}</b>${u.pinHash ? '<small class="muted">มี PIN</small>' : ''}</button>`).join('')}</div>
+    <button class="btn ghost" data-action="login-new">เพิ่มผู้ใช้</button></section>`);
+}
+function render() {
+  const authed = !!S.user, loading = authed && Store.loaded === false;
+  document.body.classList.toggle('noauth', !authed || loading);
+  const st = S.syncState || 'ok';
+  $('#who').innerHTML = authed ? (CLOUD_ON ? `<span class="syncst" id="syncst" data-s="${st}" aria-live="polite">${SYNC_L[st]}</span>` : '') +
+    `<button class="whobtn" data-action="switch-user" aria-label="${CLOUD_ON ? 'บัญชี' : 'สลับผู้ใช้'}"><span aria-hidden="true">${esc(S.user.emoji)}</span><span class="nm">${esc(S.user.name)}</span></button>` : '';
+  $('#banner').hidden = true;
+  document.querySelectorAll('#nav [data-tab]').forEach(el => { if (authed && el.dataset.tab === S.ui.tab) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current'); });
+  $('#view').innerHTML = !S.ready ? '<div class="skel"></div><div class="skel"></div>' : !authed ? viewLogin() : loading ? viewLoading() : VIEWS[S.ui.tab]();
+}
+
+/* ---------- 7) Sheet: เพิ่ม/แก้ไข + อ่านสลิป ---------- */
+const newDraft = () => ({type:'expense', amount:'', date:todayISO(), walletId: (walletOf(S.ui.lastWallet) ? S.ui.lastWallet : S.profile.wallets[0].id), toWalletId:'', category:'food', note:''});
+function openSheet(mode, id) {
+  if (mode === 'edit') {
+    const t = findTx(id); if (!t) return;
+    S.sheet = {mode, id, tab:'manual', fresh:true, draft:{type:t.type, amount:String(t.amount), date:t.date, walletId:t.walletId, toWalletId:t.toWalletId || '', category:t.category || 'other', note:t.note || '', ref:t.ref, src:t.src, time:t.time}};
+  } else S.sheet = {mode:'add', tab:'manual', fresh:true, draft:newDraft(), text:'', files:[], previews:[], ex:{stage:'idle', items:[]}};
+  renderSheet();
+}
+function closeSheet() { if (S.sheet?.ctl) S.sheet.ctl.abort(); S.sheet = null; renderSheet(); }
+const opts = (list, val) => list.map(([v, l]) => `<option value="${esc(v)}" ${v === val ? 'selected' : ''}>${esc(l)}</option>`).join('');
+const walletOpts = val => opts(S.profile.wallets.map(w => [w.id, `${w.emoji} ${w.name}`]), val);
+const catOpts = (type, val) => opts(catsFor(type).map(c => [c.id, `${c.emoji} ${c.name}`]), val);
+
+function manualPane(sh) {
+  const d = sh.draft, TT = [['expense','รายจ่าย'],['income','รายรับ'],['transfer','โอนย้าย']];
+  return `<div class="seg" role="group" aria-label="ประเภทรายการ">${TT.map(([v, l]) => `<button class="t-${v}" data-action="set-type" data-v="${v}" aria-pressed="${d.type === v}">${l}</button>`).join('')}</div>
+    <label class="fld"><span>จำนวนเงิน</span><span class="amtbox"><i aria-hidden="true">฿</i><input id="f-amt" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(d.amount)}" data-input="draft" data-k="amount"></span></label>
+    <div class="grid2"><label class="fld"><span>วันที่</span><input type="date" value="${esc(d.date)}" data-input="draft" data-k="date"></label>
+      <label class="fld"><span>${d.type === 'transfer' ? 'จากบัญชี' : 'บัญชี'}</span><select data-input="draft" data-k="walletId">${walletOpts(d.walletId)}</select></label></div>
+    ${d.type === 'transfer' ? `<label class="fld"><span>ไปยังบัญชี</span><select data-input="draft" data-k="toWalletId"><option value="">เลือกบัญชี</option>${walletOpts(d.toWalletId)}</select></label>`
+      : `<div class="fld"><span>หมวดหมู่</span><div class="chips">${catsFor(d.type).map(c => `<button class="chip" data-action="pick-cat" data-v="${esc(c.id)}" aria-pressed="${d.category === c.id}">${esc(c.emoji)} ${esc(c.name)}</button>`).join('')}</div></div>`}
+    <label class="fld"><span>บันทึกช่วยจำ</span><input type="text" value="${esc(d.note)}" placeholder="เช่น ข้าวกลางวัน" data-input="draft" data-k="note"></label>
+    <div class="actions">${sh.mode === 'edit' ? `<button class="btn danger sm grow" data-action="del-tx">ลบ</button>` : ''}
+      ${sh.mode === 'add' ? `<button class="btn ghost" data-action="save-tx" data-more="1">บันทึกและเพิ่มต่อ</button>` : ''}<button class="btn" data-action="save-tx">บันทึก</button></div>`;
+}
+function slipPane(sh) {
+  return `<p class="hint" style="margin:0">เลือกสลิปโอนเงินหรือภาพแคปหน้าจอจากแอปธนาคาร (เลือกได้หลายภาพ) ระบบจะอ่านยอด วันที่ และผู้รับ แล้วให้ตรวจทานก่อนบันทึกเสมอ</p>
+    <label class="drop" for="slipfile"><b>แตะเพื่อเลือกรูป หรือถ่ายภาพสลิป</b><span>รองรับ JPG PNG WebP</span></label>
+    <input id="slipfile" class="sr" type="file" multiple accept="image/*" data-change="slipfiles">
+    ${sh.previews.length ? `<div class="thumbs">${sh.previews.map((u, i) => `<div><img alt="สลิปที่ ${i + 1}" src="${esc(u)}"><button data-action="slip-rm" data-i="${i}" aria-label="เอาภาพที่ ${i + 1} ออก">×</button></div>`).join('')}</div>` : ''}
+    <div class="actions"><button class="btn" data-action="slip-read" ${sh.files.length ? '' : 'disabled'}>อ่านข้อมูลจากสลิป</button></div>
+    <p class="fine" style="margin:0">อ่านด้วย OCR ในเบราว์เซอร์ของคุณเอง ภาพไม่ถูกอัปโหลดไปที่ใด ครั้งแรกต้องดาวน์โหลดข้อมูลภาษาไทยประมาณ 10-20 MB (ต้องต่ออินเทอร์เน็ต) หลังจากนั้นเครื่องจะจำไว้</p>`;
+}
+function textPane(sh) {
+  return `<p class="hint" style="margin:0">คัดลอกข้อความจาก SMS แจ้งเตือนธนาคารมาวาง ถ้ามีหลายรายการให้เว้นบรรทัดว่างคั่นระหว่างรายการ</p>
+    <textarea placeholder="เช่น โอนเงินออก 250.00 บาท ไปยัง ร้านข้าวมันไก่ วันที่ 2 ต.ค. 69 เวลา 12:31" data-input="sheettext" aria-label="ข้อความจากแอปธนาคาร">${esc(sh.text)}</textarea>
+    <div class="actions"><button class="btn" data-action="text-read">อ่านข้อมูลจากข้อความ</button></div>`;
+}
+function reviewPane(sh) {
+  const ex = sh.ex;
+  if (ex.stage === 'reading') return `<div class="empty"><div class="spin" role="status" aria-label="กำลังอ่าน"></div><p style="margin-top:14px" id="exmsg">${esc(ex.msg || 'กำลังอ่านข้อมูล')}</p><button class="btn ghost sm" style="margin-top:12px" data-action="ex-cancel">ยกเลิก</button></div>`;
+  if (ex.stage === 'error') return `<div class="empty"><b>อ่านข้อมูลไม่สำเร็จ</b>${esc(ex.err)}</div><div class="actions"><button class="btn ghost" data-action="ex-back">กลับ</button></div>`;
+  if (!ex.items.length) return `<div class="empty"><b>ไม่พบรายการ</b>ลองใช้ภาพที่ชัดขึ้น หรือกรอกเอง</div><div class="actions"><button class="btn ghost" data-action="ex-back">กลับ</button></div>`;
+  const n = ex.items.filter(i => i.sel).length;
+  return `<p class="hint" style="margin:0">พบ ${ex.items.length} รายการ ตรวจสอบและแก้ไขให้ถูกต้องก่อนบันทึก การอ่านอัตโนมัติอาจผิดพลาดได้</p>` +
+    ex.items.map((it, i) => `<div class="item ${it.dup || it.warn ? 'dup' : ''}"><div class="top2"><label class="chk"><input type="checkbox" ${it.sel ? 'checked' : ''} data-change="item" data-i="${i}" data-k="sel">บันทึกรายการนี้</label>${it.warn ? '<span class="badge">อ่านยอดไม่ได้ กรอกเอง</span>' : it.dup ? '<span class="badge">อาจซ้ำกับที่มีอยู่</span>' : ''}</div>
+      <div class="grid2"><select data-input="item" data-change="item" data-i="${i}" data-k="type" aria-label="ประเภท">${opts([['expense','รายจ่าย'],['income','รายรับ']], it.type)}</select>
+        <input inputmode="decimal" value="${esc(it.amount)}" placeholder="จำนวนเงิน" data-input="item" data-i="${i}" data-k="amount" aria-label="จำนวนเงิน">
+        <input type="date" value="${esc(it.date)}" data-input="item" data-i="${i}" data-k="date" aria-label="วันที่">
+        <select data-input="item" data-i="${i}" data-k="walletId" aria-label="บัญชี">${walletOpts(it.walletId)}</select></div>
+      <select data-input="item" data-i="${i}" data-k="category" aria-label="หมวดหมู่">${catOpts(it.type, it.category)}</select>
+      <input type="text" value="${esc(it.note)}" placeholder="บันทึกช่วยจำ" data-input="item" data-i="${i}" data-k="note" aria-label="บันทึก">
+      ${it.raw ? `<details><summary>ดูข้อความที่อ่านได้</summary><pre class="raw">${esc(it.raw)}</pre></details>` : ''}</div>`).join('') +
+    `<div class="actions"><button class="btn ghost" data-action="ex-back">กลับ</button><button class="btn" data-action="ex-save" ${n ? '' : 'disabled'}>บันทึก ${n} รายการ</button></div>`;
+}
+function renderSheet() {
+  const root = $('#sheet-root'), sh = S.sheet;
+  if (!sh) { root.innerHTML = ''; document.body.classList.remove('lock'); return; }
+  document.body.classList.add('lock');
+  const ex = sh.ex, inEx = sh.mode === 'add' && ex && ex.stage !== 'idle';
+  const tabs = sh.mode === 'add' && !inEx ? `<div class="seg" role="tablist">${[['manual','กรอกเอง'],['slip','จากสลิป'],['text','วางข้อความ']].map(([v, l]) => `<button role="tab" aria-selected="${sh.tab === v}" data-action="sheet-tab" data-v="${v}">${l}</button>`).join('')}</div>` : '';
+  const body = inEx ? reviewPane(sh) : sh.tab === 'slip' ? slipPane(sh) : sh.tab === 'text' ? textPane(sh) : manualPane(sh);
+  root.innerHTML = `<div class="scrim" data-action="sheet-close"></div><div class="sheet ${sh.fresh ? 'enter' : ''}" role="dialog" aria-modal="true" aria-label="${sh.mode === 'edit' ? 'แก้ไขรายการ' : 'เพิ่มรายการ'}">
+    <header class="sh-h"><h2>${sh.mode === 'edit' ? 'แก้ไขรายการ' : 'เพิ่มรายการ'}</h2><button class="iconbtn" data-action="sheet-close" aria-label="ปิด"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <div class="sh-b">${tabs}${body}</div></div>`;
+  if (sh.fresh) { sh.fresh = false; if (sh.tab === 'manual') $('#f-amt')?.focus(); }
+}
+
+/* --- บันทึกรายการจากฟอร์ม --- */
+function readDraft(sh) {
+  const d = sh.draft, amount = num(d.amount);
+  if (!(amount > 0)) return {err: 'กรอกจำนวนเงินมากกว่า 0'};
+  if (!isISO(d.date)) return {err: 'เลือกวันที่'};
+  if (!walletOf(d.walletId)) return {err: 'เลือกบัญชี'};
+  if (d.type === 'transfer') {
+    if (!walletOf(d.toWalletId)) return {err: 'เลือกบัญชีปลายทาง'};
+    if (d.toWalletId === d.walletId) return {err: 'บัญชีต้นทางและปลายทางต้องต่างกัน'};
+  }
+  const t = {id: sh.id || genId(), type: d.type, amount, date: d.date, walletId: d.walletId, note: String(d.note || '').trim(), src: d.src || 'manual', createdAt: Date.now()};
+  if (d.type === 'transfer') t.toWalletId = d.toWalletId; else t.category = d.category || 'other';
+  if (d.ref) t.ref = d.ref; if (d.time) t.time = d.time;
+  return {t};
+}
+function saveDraft(more) {
+  const sh = S.sheet, r = readDraft(sh);
+  if (r.err) { toast(r.err, 'err'); return; }
+  if (sh.mode === 'edit') { const old = findTx(sh.id); if (old?.createdAt) r.t.createdAt = old.createdAt; removeTx(sh.id); }
+  S.ui.lastWallet = r.t.walletId;
+  addTxs([r.t]); toast(sh.mode === 'edit' ? 'แก้ไขแล้ว' : 'บันทึกแล้ว');
+  if (more) { S.sheet.draft = {...newDraft(), type: r.t.type === 'transfer' ? 'expense' : r.t.type, category: r.t.category || 'food', date: r.t.date}; S.sheet.fresh = true; renderSheet(); }
+  else closeSheet();
+  render();
+}
+
+/* --- อ่านสลิป: OCR (Tesseract.js) ในเบราว์เซอร์ + ตัวแยกข้อมูลสลิปธนาคารไทย --- */
+const readDataURL = f => new Promise(res => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = () => res(''); r.readAsDataURL(f); });
+let tessLoading = null;
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve();
+  if (tessLoading) return tessLoading;
+  tessLoading = new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+    sc.onload = res; sc.onerror = () => { tessLoading = null; rej(new Error('load')); };
+    document.head.appendChild(sc);
+  });
+  return tessLoading;
+}
+const TH_MON_PARSE = {'มกราคม':1,'กุมภาพันธ์':2,'มีนาคม':3,'เมษายน':4,'พฤษภาคม':5,'มิถุนายน':6,'กรกฎาคม':7,'สิงหาคม':8,'กันยายน':9,'ตุลาคม':10,'พฤศจิกายน':11,'ธันวาคม':12,
+  'มค':1,'กพ':2,'มีค':3,'เมย':4,'พค':5,'มิย':6,'กค':7,'สค':8,'กย':9,'ตค':10,'พย':11,'ธค':12,
+  'jan':1,'feb':2,'mar':3,'apr':4,'may':5,'jun':6,'jul':7,'aug':8,'sep':9,'oct':10,'nov':11,'dec':12};
+const MON_RE = Object.keys(TH_MON_PARSE).sort((a, b) => b.length - a.length).join('|');
+function fixYear(ys) { let y = +ys; if (ys.length === 2) y = y >= 50 ? 1957 + y : 2000 + y; else if (y > 2400) y -= 543; return y; }
+function parseDate(t) {
+  const thisY = new Date().getFullYear();
+  const mk = (d, mo, ys) => { const y = fixYear(ys); if (d < 1 || d > 31 || mo < 1 || mo > 12 || Math.abs(y - thisY) > 5) return ''; return `${y}-${pad(mo)}-${pad(d)}`; };
+  const s = t.replace(/\./g, '').replace(/[ \t]+/g, ' ');
+  let m = s.match(new RegExp('(\\d{1,2}) ?(' + MON_RE + ')[a-z]* ?(\\d{4}|\\d{2})(?!\\d)', 'i'));
+  if (m) { const r = mk(+m[1], TH_MON_PARSE[m[2].toLowerCase()], m[3]); if (r) return r; }
+  m = t.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4}|\d{2})(?!\d)/);
+  if (m) { const r = mk(+m[1], +m[2], m[3]); if (r) return r; }
+  return '';
+}
+function parseAmount(t) {
+  const s = t.replace(/(\d)\s*,\s*(\d{3})/g, '$1,$2'), n2 = '([\\d,]{1,12}\\.\\d{2})';
+  const pats = [new RegExp('(?:จำนวนเงิน|จำนวน|Amount|ยอดเงิน|ยอดชำระ|ยอดโอน)[^\\d\\n]{0,20}' + n2, 'i'), new RegExp(n2 + '\\s*(?:บาท|THB|Baht)', 'i')];
+  for (const p of pats) { const m = s.match(p); if (m) { const v = num(m[1]); if (v > 0) return v; } }
+  for (const l of s.split('\n')) { if (/ค่าธรรมเนียม|Fee/i.test(l)) continue; const m = l.match(/([\d,]{1,12}\.\d{2})(?!\d)/); if (m && num(m[1]) > 0) return num(m[1]); }
+  return 0;
+}
+function parseParty(lines, income) {
+  const keys = income ? /^(?:จาก|ผู้โอน|From)(?=[\s:：]|$)/i : /^(?:ไปยัง|โอนไปยัง|ถึง|ผู้รับ|ชื่อผู้รับ|ชื่อร้านค้า|ร้านค้า|To|Merchant)(?=[\s:：]|$)/i;
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(keys); if (!m) continue;
+    let rest = lines[i].slice(m[0].length).replace(/^[\s:：]+/, '');
+    if (rest.length < 2 && lines[i + 1]) rest = lines[i + 1];
+    rest = rest.replace(/[\dxX*\- ]{8,}$/, '').trim();
+    if (rest.length >= 2 && !/^[\dxX*\-\s]+$/.test(rest)) return rest.slice(0, 60);
+  }
+  return '';
+}
+const CAT_RULES = [
+  ['expense','food',/อาหาร|ข้าว|ก๋วยเตี๋ยว|กาแฟ|คาเฟ่|ชานม|เซเว่น|7-?eleven|cafe|coffee|restaurant|grab\s*food|lineman|foodpanda|kfc|mcdonald|starbucks/i],
+  ['expense','transport',/\bbts\b|\bmrt\b|แท็กซี่|taxi|\bgrab\b(?!\s*food)|bolt|ปตท|\bptt\b|shell|เชลล์|บางจาก|ทางด่วน|easy\s*pass|รถไฟ|airasia|nok\s*air/i],
+  ['expense','shopping',/lazada|shopee|ลาซาด้า|ช้อปปี้|central|เซ็นทรัล|big\s*c|บิ๊กซี|lotus|โลตัส|\btops\b|makro|แมคโคร|uniqlo/i],
+  ['expense','bills',/การไฟฟ้า|\bmea\b|\bpea\b|ประปา|ค่าน้ำ|ค่าไฟ|\bais\b|\btrue\b|dtac|ทรู|เอไอเอส|ดีแทค|internet|อินเทอร์เน็ต|3bb|บัตรเครดิต|ค่างวด/i],
+  ['expense','health',/โรงพยาบาล|คลินิก|ร้านยา|เภสัช|hospital|clinic|pharmacy|boots|watsons/i],
+  ['expense','home',/ค่าเช่า|หอพัก|คอนโด|\brent\b/i],
+  ['expense','edu',/โรงเรียน|ค่าเทอม|มหาวิทยาลัย|school|tuition|คอร์ส|course/i],
+  ['expense','fun',/netflix|spotify|youtube|disney|โรงหนัง|major|sf\s*cinema|steam|playstation|nintendo/i],
+  ['income','salary',/เงินเดือน|salary/i], ['income','bonus',/โบนัส|bonus/i], ['income','invest',/ดอกเบี้ย|ปันผล|interest|dividend/i]
+];
+function guessCat(type, text) {
+  const list = catsFor(type);
+  for (const [ty, id, re] of CAT_RULES) if (ty === type && re.test(text) && list.some(c => c.id === id)) return id;
+  return (list.find(c => c.id === 'other') || list[list.length - 1]).id;
+}
+function parseBlock(raw, keep, src) {
+  const t = raw.replace(/\u0E4D\u0E32/g, '\u0E33').replace(/([\u0E00-\u0E7F])[ \t]+(?=[\u0E00-\u0E7F])/g, '$1');
+  const lines = t.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  const amount = parseAmount(t);
+  if (!(amount > 0) && !keep) return null;
+  const type = /รับเงิน|เงินเข้า|ได้รับเงิน|รับโอน|โอนเข้า|ฝากเงิน|received|money\s*in/i.test(t) ? 'income' : 'expense';
+  const date = parseDate(t) || todayISO();
+  const tm = t.match(/(?:^|[^\d])([01]?\d|2[0-3]):([0-5]\d)(?!\d)/);
+  const time = tm ? `${pad(+tm[1])}:${tm[2]}` : '';
+  const refm = t.match(/(?:เลขที่รายการ|รหัสอ้างอิง|เลขที่อ้างอิง|เลขอ้างอิง|หมายเลขอ้างอิง|Ref(?:erence)?\.?(?:\s*(?:No|ID)\.?)?|Transaction\s*(?:ID|No))\s*[:：]?\s*([A-Za-z0-9]{8,})/i);
+  const memom = t.match(/(?:บันทึกช่วยจำ|บันทึก|Memo|Note)\s*[:：]?\s*([^\n]{1,60})/i);
+  const note = [parseParty(lines, type === 'income'), memom ? memom[1].trim() : ''].filter(Boolean).join(' / ');
+  const ref = refm ? refm[1] : '';
+  const dup = amount > 0 && allTx().some(x => (ref && x.ref === ref) || (x.date === date && x.type === type && Math.abs(num(x.amount) - amount) < 0.005));
+  return {sel: amount > 0 && !dup, warn: !(amount > 0), type, amount: amount > 0 ? String(amount) : '', date, time, note, ref, category: guessCat(type, t),
+    walletId: walletOf(S.ui.lastWallet) ? S.ui.lastWallet : S.profile.wallets[0].id, dup, src, raw: t.slice(0, 1500)};
+}
+async function runExtract(kind) {
+  const sh = S.sheet, flag = {stop: false}; sh.ctl = {abort() { flag.stop = true; }};
+  if (kind === 'text' && !sh.text.trim()) { toast('วางข้อความก่อน', 'err'); return; }
+  sh.ex = {stage: 'reading', items: [], kind, msg: 'กำลังเตรียมระบบอ่านข้อมูล'}; renderSheet();
+  const setMsg = m => { if (S.sheet === sh && sh.ex.stage === 'reading') { sh.ex.msg = m; const el = $('#exmsg'); if (el) el.textContent = m; } };
+  try {
+    let items = [];
+    if (kind === 'text') {
+      items = sh.text.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean).map(b => parseBlock(b, false, 'text')).filter(Boolean);
+    } else {
+      setMsg('กำลังโหลดระบบอ่านภาพ');
+      await loadTesseract();
+      const worker = await Tesseract.createWorker(['tha', 'eng'], 1, {logger: m => {
+        if (!m || !m.status) return;
+        if (/language|traineddata/i.test(m.status)) setMsg('กำลังดาวน์โหลดข้อมูลภาษาไทย ครั้งแรกอาจใช้เวลาสักครู่');
+        else if (/recogniz/i.test(m.status)) setMsg(`กำลังอ่านภาพ ${Math.round((m.progress || 0) * 100)}%`);
+      }});
+      try {
+        for (const f of sh.files) {
+          if (flag.stop) break;
+          const {data} = await worker.recognize(f);
+          items.push(parseBlock(data.text || '', true, 'slip'));
+        }
+      } finally { await worker.terminate(); }
+    }
+    if (S.sheet !== sh) return;
+    if (flag.stop) { sh.ex = {stage: 'idle', items: []}; renderSheet(); return; }
+    sh.ex = {stage: 'review', kind, items};
+  } catch (e) {
+    if (S.sheet !== sh) return;
+    sh.ex = {stage: 'error', items: [], err: kind === 'slip' ? 'โหลดระบบอ่านภาพไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่ หรือกรอกเอง' : 'เกิดข้อผิดพลาด ลองอีกครั้ง'};
+  }
+  renderSheet();
+}
+
+/* ---------- 8) Actions & events ---------- */
+const csvCell = (v, text) => { let s = String(v ?? ''); if (text && /^[=+\-@]/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function saveFile(filename, data) {
+  try {
+    const blob = new Blob([data], {type: filename.endsWith('.csv') ? 'text/csv;charset=utf-8' : 'application/json'});
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 3000); toast('บันทึกไฟล์แล้ว');
+  } catch (e) { toast('บันทึกไฟล์ไม่สำเร็จ', 'err'); }
+}
+const TYPE_L = {expense:'รายจ่าย', income:'รายรับ', transfer:'โอนย้าย'};
+const A = {
+  'login-pick'(el) { const u = Store.users.find(x => x.id === el.dataset.id); if (!u) return; if (u.pinHash) { S.login = {step: 'pin', uid: u.id}; render(); $('#pin')?.focus(); } else { Store.enter(u); render(); window.scrollTo(0, 0); } },
+  'login-new'() { S.login = {step: 'new'}; render(); $('#nu-name')?.focus(); },
+  'login-back'() { S.login = {step: 'list'}; render(); },
+  'nu-emo'(el) { S.login.emoji = el.dataset.v; document.querySelectorAll('[data-action="nu-emo"]').forEach(b => b.setAttribute('aria-pressed', String(b === el))); },
+  async 'login-pin'() {
+    const u = Store.users.find(x => x.id === S.login?.uid); if (!u) return;
+    const h = await hashPin($('#pin').value.trim(), u.salt);
+    if (h === u.pinHash) { Store.enter(u); render(); window.scrollTo(0, 0); } else { toast('PIN ไม่ถูกต้อง', 'err'); $('#pin').value = ''; $('#pin').focus(); }
+  },
+  async 'login-create'() {
+    const name = $('#nu-name').value.trim(), pin = $('#nu-pin').value.trim();
+    if (!name) { toast('ใส่ชื่อผู้ใช้', 'err'); return; }
+    if (pin && !/^\d{4,6}$/.test(pin)) { toast('PIN ต้องเป็นตัวเลข 4-6 หลัก', 'err'); return; }
+    const u = {id: 'u_' + genId().slice(2), name, emoji: S.login?.emoji || EMOJIS[0]};
+    if (pin) { u.salt = genId(); u.pinHash = await hashPin(pin, u.salt); }
+    Store.users.push(u); Store.saveUsers(); Store.enter(u); render(); window.scrollTo(0, 0);
+  },
+  'switch-user'() { if (CLOUD_ON) { S.ui.tab = 'settings'; render(); window.scrollTo(0, 0); return; } Store.leave(); render(); },
+  async 'cloud-login'() {
+    const email = $('#lg-email').value.trim(), pw = $('#lg-pass').value;
+    if (!email || !pw) { toast('กรอกอีเมลและรหัสผ่าน', 'err'); return; }
+    try { await Api.signIn(email, pw); } catch (e) { toast(authMsg(e), 'err'); return; }
+    StoreCloud.enter(); render(); StoreCloud.sync();
+  },
+  async 'cloud-signup'() {
+    const email = $('#lg-email').value.trim(), pw = $('#lg-pass').value;
+    if (!email || pw.length < 6) { toast('กรอกอีเมลและรหัสผ่านอย่างน้อย 6 ตัวอักษร', 'err'); return; }
+    try { if (await Api.signUp(email, pw)) { StoreCloud.enter(); render(); StoreCloud.sync(); } else toast('สมัครแล้ว กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ'); } catch (e) { toast(authMsg(e), 'err'); }
+  },
+  async 'cloud-reset'() {
+    const email = $('#lg-email').value.trim(); if (!email) { toast('กรอกอีเมลก่อน', 'err'); return; }
+    try { await Api.call('recover', {body: {email}}); toast('ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลแล้ว'); } catch (e) { toast(authMsg(e), 'err'); }
+  },
+  async 'cloud-newpw'() {
+    const pw = $('#np-pass').value; if (pw.length < 6) { toast('รหัสผ่านอย่างน้อย 6 ตัวอักษร', 'err'); return; }
+    try { await Api.call('user', {method: 'PUT', body: {password: pw}, bearer: await Api.token()}); } catch (e) { toast(authMsg(e), 'err'); return; }
+    StoreCloud.enter(); render(); StoreCloud.sync(); toast('ตั้งรหัสผ่านใหม่แล้ว');
+  },
+  async 'sync-now'() { toast('กำลังซิงค์'); await StoreCloud.sync(); render(); },
+  async 'logout-cloud'() {
+    const n = StoreCloud.dirty.size;
+    if (!(await ask(n ? `ยังมี ${n} ส่วนที่ยังไม่ได้ซิงค์ ถ้าออกจากระบบตอนนี้จะหายไป ต้องการออกไหม` : 'ออกจากระบบใช่ไหม ข้อมูลที่ซิงค์แล้วยังอยู่ในบัญชีของคุณ', 'ออกจากระบบ'))) return;
+    const tok = Api.sess && Api.sess.access_token; if (tok) Api.call('logout', {bearer: tok}).catch(() => {});
+    StoreCloud.reset(); render();
+  },
+  'save-name'() { const v = $('#su-name').value.trim(); if (!v) { toast('ใส่ชื่อ', 'err'); return; } const u = Store.users.find(x => x.id === S.user.id); u.name = v; S.user.name = v; Store.saveUsers(); render(); toast('บันทึกชื่อแล้ว'); },
+  async 'set-pin'() {
+    const pin = $('#su-pin').value.trim(); if (!/^\d{4,6}$/.test(pin)) { toast('PIN ต้องเป็นตัวเลข 4-6 หลัก', 'err'); return; }
+    const u = Store.users.find(x => x.id === S.user.id); u.salt = genId(); u.pinHash = await hashPin(pin, u.salt); Store.saveUsers(); render(); toast('ตั้ง PIN แล้ว');
+  },
+  async 'clear-pin'() { if (!(await ask('ลบ PIN ของผู้ใช้นี้ใช่ไหม', 'ลบ PIN'))) return; const u = Store.users.find(x => x.id === S.user.id); delete u.pinHash; delete u.salt; Store.saveUsers(); render(); },
+  async 'delete-user'() {
+    if (!(await ask(`ลบผู้ใช้ "${S.user.name}" พร้อมข้อมูลทั้งหมด ย้อนกลับไม่ได้ ควรสำรองข้อมูลก่อน`, 'ลบผู้ใช้'))) return;
+    const id = S.user.id; try { localStorage.removeItem(LS.data(id)); } catch (e) {}
+    Store.users = Store.users.filter(u => u.id !== id); Store.saveUsers(); Store.leave(); render();
+  },
+  tab(el) { S.ui.tab = el.dataset.tab; if (el.dataset.tab === 'tx') S.ui.txLimit = 80; render(); window.scrollTo(0, 0); },
+  add() { openSheet('add'); },
+  edit(el) { openSheet('edit', el.dataset.id); },
+  'sheet-close'() { closeSheet(); },
+  'sheet-tab'(el) { S.sheet.tab = el.dataset.v; renderSheet(); },
+  'set-type'(el) { const d = S.sheet.draft, t = el.dataset.v; d.type = t; if (t !== 'transfer' && !catsFor(t).some(c => c.id === d.category)) d.category = 'other'; renderSheet(); },
+  'pick-cat'(el) { S.sheet.draft.category = el.dataset.v; renderSheet(); },
+  'save-tx'(el) { saveDraft(el.dataset.more === '1'); },
+  async 'del-tx'() { const id = S.sheet.id; if (await ask('ลบรายการนี้ใช่ไหม', 'ลบ')) { removeTx(id); closeSheet(); render(); toast('ลบแล้ว'); } },
+  mprev() { S.ui.month = shiftMonth(S.ui.month, -1); render(); },
+  mnext() { S.ui.month = shiftMonth(S.ui.month, 1); render(); },
+  'set-month-budget'() { const v = num($('#mbudget').value); if (!(v > 0)) { toast('กรอกงบมากกว่า 0', 'err'); return; } S.profile.budget.byMonth[S.ui.month] = v; Store.saveProfile(); render(); toast('ตั้งงบแล้ว'); },
+  'clear-month-budget'() { delete S.profile.budget.byMonth[S.ui.month]; Store.saveProfile(); render(); },
+  'tx-type'(el) { S.ui.txType = el.dataset.v; S.ui.txLimit = 80; render(); },
+  'tx-more'() { S.ui.txLimit += 80; $('#txlist').innerHTML = txListHTML(); },
+  'calc-tab'(el) { S.ui.calc.tab = el.dataset.v; render(); },
+  'calc-mode'(el) { S.ui.calc.goal.mode = el.dataset.v; render(); },
+  'use-avg'() { const a = Math.max(0, Math.round(avgNet() || 0)); const c = S.ui.calc; c.grow.amt = String(a); c.grow.freq = 'month'; c.goal.amt = String(a); c.goal.freq = 'month'; S.ui.tab = 'save'; render(); window.scrollTo(0, 0); },
+  'wallet-add'() { S.profile.wallets.push({id: 'w_' + genId().slice(2), name: 'บัญชีใหม่', emoji: '💳', initial: 0}); Store.saveProfile(); render(); },
+  async 'wallet-del'(el) {
+    const w = S.profile.wallets[+el.dataset.i];
+    if (S.profile.wallets.length < 2) { toast('ต้องมีอย่างน้อย 1 บัญชี', 'err'); return; }
+    if (allTx().some(t => t.walletId === w.id || t.toWalletId === w.id)) { toast('บัญชีนี้มีรายการอยู่ ลบหรือย้ายรายการก่อน', 'err'); return; }
+    if (await ask(`ลบบัญชี "${w.name}" ใช่ไหม`, 'ลบ')) { S.profile.wallets.splice(+el.dataset.i, 1); Store.saveProfile(); render(); }
+  },
+  'cat-add'() {
+    const type = $('#nc-type').value, name = $('#nc-name').value.trim(), emoji = $('#nc-emo').value.trim() || '🏷️';
+    if (!name) { toast('ใส่ชื่อหมวด', 'err'); return; }
+    S.profile.categories[type].push({id: 'c_' + genId().slice(2), name, emoji}); Store.saveProfile(); render();
+  },
+  async 'cat-del'(el) {
+    const list = S.profile.categories[el.dataset.type], c = list[+el.dataset.i];
+    if (c.id === 'other') { toast('ลบหมวด "อื่น ๆ" ไม่ได้', 'err'); return; }
+    if (await ask(`ลบหมวด "${c.name}" ใช่ไหม รายการเดิมจะแสดงเป็นหมวดที่ถูกลบ`, 'ลบ')) { list.splice(+el.dataset.i, 1); Store.saveProfile(); render(); }
+  },
+  'export-csv'() {
+    const head = ['วันที่','เวลา','ประเภท','จำนวนเงิน','บัญชี','ไปยังบัญชี','หมวดหมู่','บันทึก','แหล่งที่มา','เลขอ้างอิง'];
+    const rows = allTx().sort((a, b) => a.date.localeCompare(b.date)).map(t => [t.date, t.time || '', TYPE_L[t.type], t.amount, walletName(t.walletId), t.toWalletId ? walletName(t.toWalletId) : '', catOf(t).name, t.note || '', t.src || 'manual', t.ref || ''].map((v, i) => csvCell(v, i !== 3)).join(','));
+    saveFile(`sumudngern-${todayISO()}.csv`, '\ufeff' + [head.join(','), ...rows].join('\r\n'));
+  },
+  'export-json'() { saveFile(`sumudngern-backup-${todayISO()}.json`, JSON.stringify({app: 'sumudngern', v: 1, exportedAt: new Date().toISOString(), profile: S.profile, months: S.months}, null, 1)); },
+  async 'reset-all'() {
+    if (!(await ask('ลบข้อมูลทั้งหมดของคุณ (รายการ บัญชี หมวดหมู่) ย้อนกลับไม่ได้', 'ลบทั้งหมด'))) return;
+    const keys = Object.keys(S.months); S.months = {}; S.profile = defaultProfile();
+    keys.forEach(k => Store.saveMonth(k)); Store.saveProfile(); render(); toast('ลบข้อมูลแล้ว');
+  },
+  'slip-rm'(el) { const i = +el.dataset.i; S.sheet.files.splice(i, 1); S.sheet.previews.splice(i, 1); renderSheet(); },
+  'slip-read'() { runExtract('slip'); },
+  'text-read'() { runExtract('text'); },
+  'ex-cancel'() { S.sheet.ctl?.abort(); },
+  'ex-back'() { S.sheet.ex = {stage: 'idle', items: []}; renderSheet(); },
+  'ex-save'() {
+    const sel = S.sheet.ex.items.filter(i => i.sel), list = [];
+    for (const it of sel) {
+      if (!(num(it.amount) > 0) || !isISO(it.date) || !walletOf(it.walletId)) { toast('ตรวจสอบจำนวนเงิน วันที่ และบัญชีของทุกรายการ', 'err'); return; }
+      const t = {id: genId(), type: it.type, amount: num(it.amount), date: it.date, walletId: it.walletId, category: it.category, note: it.note.trim(), src: it.src, createdAt: Date.now()};
+      if (it.ref) t.ref = it.ref; if (it.time) t.time = it.time; list.push(t);
+    }
+    if (list.length) S.ui.lastWallet = list[0].walletId;
+    addTxs(list); closeSheet(); render(); toast(`บันทึก ${list.length} รายการแล้ว`);
+  }
+};
+const setPath = (obj, path, v) => { const ks = path.split('.'); let o = obj; ks.slice(0, -1).forEach(k => o = o[k]); o[ks[ks.length - 1]] = v; };
+const INPUT = {
+  draft(el) { S.sheet.draft[el.dataset.k] = el.value; },
+  sheettext(el) { S.sheet.text = el.value; },
+  txq(el) { S.ui.q = el.value; S.ui.txLimit = 80; $('#txlist').innerHTML = txListHTML(); },
+  calc(el) { setPath(S.ui.calc, el.dataset.k, el.value); $('#calcOut').innerHTML = calcOut(); },
+  item(el) { if (el.type === 'checkbox') return; const it = S.sheet.ex.items[+el.dataset.i]; it[el.dataset.k] = el.value; }
+};
+const CHANGE = {
+  txmonth(el) { S.ui.txMonth = el.value; S.ui.txLimit = 80; $('#txlist').innerHTML = txListHTML(); },
+  wallet(el) {
+    const w = S.profile.wallets[+el.dataset.i], k = el.dataset.k;
+    w[k] = k === 'initial' ? num(el.value) : (el.value.trim() || w[k]);
+    Store.saveProfile();
+  },
+  budget(el) { S.profile.budget.base = Math.max(0, num(el.value)); Store.saveProfile(); toast('บันทึกงบแล้ว'); },
+  item(el) {
+    const it = S.sheet.ex.items[+el.dataset.i], k = el.dataset.k;
+    if (k === 'sel') { it.sel = el.checked; renderSheet(); }
+    else if (k === 'type') { it.type = el.value; if (!catsFor(it.type).some(c => c.id === it.category)) it.category = 'other'; renderSheet(); }
+  },
+  async slipfiles(el) {
+    const max = 8, files = [...el.files].slice(0, max); el.value = '';
+    if (!files.length) return;
+    const sh = S.sheet; sh.files = [...sh.files, ...files].slice(0, max);
+    sh.previews = await Promise.all(sh.files.map(readDataURL)); if (S.sheet === sh) renderSheet();
+  },
+  async import(el) {
+    const f = el.files[0]; el.value = ''; if (!f) return;
+    try {
+      const o = JSON.parse(await f.text());
+      if (o.app !== 'sumudngern' || !o.months) throw new Error('bad');
+      const have = new Set(allTx().map(t => t.id)); let n = 0; const touched = new Set();
+      Object.entries(o.months).forEach(([k, arr]) => (Array.isArray(arr) ? arr : []).forEach(t => {
+        if (!t || !t.id || have.has(t.id) || !isISO(t.date)) return; S.months[t.date.slice(0, 7)] = [...(S.months[t.date.slice(0, 7)] || []), t]; touched.add(t.date.slice(0, 7)); n++;
+      }));
+      const p = normProfile(o.profile);
+      p.wallets.forEach(w => { if (!walletOf(w.id)) S.profile.wallets.push(w); });
+      ['expense', 'income'].forEach(ty => p.categories[ty].forEach(c => { if (!catsFor(ty).some(x => x.id === c.id)) S.profile.categories[ty].push(c); }));
+      touched.forEach(k => Store.saveMonth(k)); Store.saveProfile(); render(); toast(`นำเข้า ${n} รายการ`);
+    } catch (e) { toast('ไฟล์สำรองไม่ถูกต้อง', 'err'); }
+  }
+};
+document.addEventListener('click', e => { const el = e.target.closest('[data-action]'); if (el && A[el.dataset.action]) A[el.dataset.action](el, e); });
+document.addEventListener('input', e => { const el = e.target.closest('[data-input]'); if (el && INPUT[el.dataset.input]) INPUT[el.dataset.input](el, e); });
+document.addEventListener('change', e => { const el = e.target.closest('[data-change]'); if (el && CHANGE[el.dataset.change]) CHANGE[el.dataset.change](el, e); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S.sheet && !$('#confirm-root').innerHTML) closeSheet();
+  if (e.key === 'Enter' && (e.target.id === 'lg-email' || e.target.id === 'lg-pass')) { e.preventDefault(); A['cloud-login'](); }
+  if (e.key === 'Enter' && e.target.id === 'np-pass') { e.preventDefault(); A['cloud-newpw'](); }
+  if (e.key === 'Enter' && e.target.id === 'pin') { e.preventDefault(); A['login-pin'](); }
+  if (e.key === 'Enter' && S.sheet && S.sheet.tab === 'manual' && e.target.matches('[data-input="draft"]') && e.target.type !== 'date') { e.preventDefault(); saveDraft(false); }
+});
+
+Store.init();
+</script>
+</body>
+</html>
